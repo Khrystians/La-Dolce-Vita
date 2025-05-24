@@ -11,7 +11,7 @@
     }
     .sidebar {
       background-color: white;
-      height: 200vh; /* Ajusta la altura de la barra lateral */
+      height: 210vh; /* Ajusta la altura de la barra lateral */
       padding: 20px;
       border-right: 1px solid #ddd;
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Añade sombra al sidebar */
@@ -203,12 +203,31 @@
         <a class="nav-link" href="Administrador-Finanzas-Categorias.php"><i class="bi bi-bar-chart"></i> Finanzas</a>
         <a class="nav-link" href="Administrador-Calendario.php"><i class="bi bi-calendar"></i> Calendario</a>
         <a class="nav-link" href="Administrador-Eventos.php"><i class="bi bi-calendar-event"></i> Eventos</a>
-        <a class="nav-link" href="#"><i class="bi bi-people"></i> Equipo</a>
+        <a class="nav-link" href="Administrador-Equipo.php"><i class="bi bi-people"></i> Equipo</a>
         <a class="nav-link" href="#"><i class="bi bi-egg-fried"></i> Cocina</a> <!-- Nuevo enlace -->
         <a class="nav-link active" href="Administrador-menu.php"><i class="bi bi-list"></i> Menú</a>
         <a class="nav-link" href="#"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
         <a class="nav-link" href="#"><i class="bi bi-info-circle"></i> Información General</a> <!-- Nuevo enlace -->
-        <a class="nav-link" href="#"><i class="bi bi-bell"></i> Notificaciones <span class="badge bg-danger">3</span></a> <!-- Notificaciones -->
+        <?php
+          // Obtener el número de notificaciones no leídas
+          $notificaciones = 0;
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              $sqlNotif = "SELECT COUNT(*) as total FROM notifications WHERE is_read = 0";
+              $resNotif = mysqli_query($conexion, $sqlNotif);
+              if ($filaNotif = mysqli_fetch_assoc($resNotif)) {
+                $notificaciones = $filaNotif['total'];
+              }
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {
+            $notificaciones = 0;
+          }
+        ?>
+        
+        <a class="nav-link" href="Administrador-Notificaciones.php"><i class="bi bi-bell"></i> Notificaciones <span class="badge bg-danger"><?php echo $notificaciones; ?></span></a> <!-- Notificaciones -->
       </nav>
 
       <!-- Línea de separación -->
@@ -252,187 +271,125 @@
 
       <!-- Categorías -->
       <div class="categories-container px-4 mb-4">
-        <div class="category-item active">
-          <img src="../Assets/Images/logos/entradas.png" alt="Entradas">
-          <span>Entradas</span>
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/pasta.png" alt="Pasta">
-          <span>Pasta</span>
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/pizza.png" alt="Pizzas">
-          <span>Pizzas</span>
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/antipasta.png" alt="AntiPasta">
-          <span>AntiPasta</span>
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/bebidas.png" alt="Bebidas">
-          <span>Bebidas</span>
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/postre.png" alt="Postres">
-          <span>Postres</span>
-        </div>
+        <?php
+          // Obtener categorías de la base de datos
+          $categorias = [];
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              $resCat = mysqli_query($conexion, "SELECT * FROM categories ORDER BY id");
+              while ($cat = mysqli_fetch_assoc($resCat)) {
+                $categorias[] = $cat;
+              }
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {}
+        ?>
+        <?php foreach ($categorias as $i => $cat): ?>
+          <div class="category-item<?php if ($i === 0) echo ' active'; ?>" data-category-id="<?php echo $cat['id']; ?>">
+            <img src="../Assets/Images/logos/<?php echo strtolower($cat['name']); ?>.png" alt="<?php echo htmlspecialchars($cat['name']); ?>">
+            <span><?php echo htmlspecialchars($cat['name']); ?></span>
+          </div>
+        <?php endforeach; ?>
       </div>
 
       <!-- Menú items -->
-      <div class="row row-cols-1 row-cols-md-4 g-4 px-4">
-        <!-- Tarjeta 1 -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314837/CARTA/CUORE%20FELICE/la-tagliatella-trio-di-bruschette.jpg" class="card-img-top" alt="Tortellini frito">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Tortellini frito</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-                <img src="../Assets/Images/logos/lacteos.png" alt="Lactosa">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tarjeta 2 -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314836/CARTA/CUORE%20FELICE/la-tagliatella-pizza-all-uovo.jpg" class="card-img-top" alt="Pizza al huevo">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Pizza al huevo</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/huevo.png" alt="Huevo">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tarjeta 3 -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724315055/CARTA/TARTAR_CARPACCIO/la-tagliatella-tartar-di-salmone.jpg" class="card-img-top" alt="Tartar de salmón">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Tartar de salmón</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/pescado.png" alt="Pescado">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-danger btn-sm w-100">Eliminar del menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Otra tarjeta -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314899/CARTA/INSALATE/la-tagliatella-insalata-affumicata.jpg" class="card-img-top" alt="Tortellini frito">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Tortellini frito</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/pescado.png" alt="Pescado">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Nueva fila -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314899/CARTA/INSALATE/la-tagliatella-insalata-affumicata.jpg" class="card-img-top" alt="Ensalada ahumada">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Ensalada ahumada</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724315055/CARTA/TARTAR_CARPACCIO/la-tagliatella-tartar-di-salmone.jpg" class="card-img-top" alt="Tartar de salmón">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Tartar de salmón</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/pescado.png" alt="Pescado">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-danger btn-sm w-100">Eliminar del menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Otra fila -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314836/CARTA/CUORE%20FELICE/la-tagliatella-pizza-all-uovo.jpg" class="card-img-top" alt="Pizza al huevo">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Pizza al huevo</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/huevo.png" alt="Huevo">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314837/CARTA/CUORE%20FELICE/la-tagliatella-trio-di-bruschette.jpg" class="card-img-top" alt="Bruschetta">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Bruschetta</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-                <img src="../Assets/Images/logos/lacteos.png" alt="Lactosa">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Nueva tarjeta 1 -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314836/CARTA/CUORE%20FELICE/la-tagliatella-lasagna.jpg" class="card-img-top" alt="Lasaña">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Lasaña</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/gluten.png" alt="Gluten">
-                <img src="../Assets/Images/logos/lacteos.png" alt="Lactosa">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Nueva tarjeta 2 -->
-        <div class="col">
-          <div class="card menu-card shadow-sm">
-            <img src="https://res.cloudinary.com/hesvvq3zo/image/upload/c_scale,w_500,/v1724314837/CARTA/CUORE%20FELICE/la-tagliatella-tiramisu.jpg" class="card-img-top" alt="Tiramisú">
-            <div class="card-body text-center">
-              <h6 class="card-title mb-1">Tiramisú</h6>
-              <div class="allergens">
-                <img src="../Assets/Images/logos/huevo.png" alt="Huevo">
-                <img src="../Assets/Images/logos/lacteos.png" alt="Lactosa">
-              </div>
-              <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>
-              <button class="btn btn-success btn-sm w-100">Añadir al menú</button>
-            </div>
-          </div>
-        </div>
+      <div id="menu-items" class="row row-cols-1 row-cols-md-4 g-4 px-4">
+        <?php
+          // Mostrar los platos de la primera categoría por defecto
+          $cat_id = isset($categorias[0]['id']) ? $categorias[0]['id'] : 1;
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              $sql = "SELECT * FROM dishes WHERE category_id = $cat_id";
+              $resDishes = mysqli_query($conexion, $sql);
+              while ($dish = mysqli_fetch_assoc($resDishes)) {
+                // Obtener alérgenos
+                $allergens = [];
+                $resAll = mysqli_query($conexion, "SELECT a.name FROM dish_allergens da JOIN allergens a ON da.allergen_id = a.id WHERE da.dish_id = " . intval($dish['id']));
+                while ($a = mysqli_fetch_assoc($resAll)) {
+                  $allergens[] = $a['name'];
+                }
+                echo '<div class="col">
+                        <div class="card menu-card shadow-sm">
+                          <img src="' . htmlspecialchars($dish['image_url']) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
+                          <div class="card-body text-center">
+                            <h6 class="card-title mb-1">' . htmlspecialchars($dish['name']) . '</h6>
+                            <div class="allergens">';
+                foreach ($allergens as $al) {
+                  $icon = strtolower($al);
+                  echo '<img src="../Assets/Images/logos/' . $icon . '.png" alt="' . htmlspecialchars($al) . '">';
+                }
+                echo    '</div>
+                            <button class="btn btn-secondary btn-sm mb-2 w-100">Editar</button>';
+                // Botón activar/desactivar según is_active
+                if ($dish['is_active']) {
+                  echo '<button class="btn btn-warning btn-sm w-100 toggle-active-btn" data-dish-id="' . $dish['id'] . '" data-active="1">Desactivar</button>';
+                } else {
+                  echo '<button class="btn btn-success btn-sm w-100 toggle-active-btn" data-dish-id="' . $dish['id'] . '" data-active="0">Activar</button>';
+                }
+                echo    '
+                          </div>
+                        </div>
+                      </div>';
+              }
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {}
+        ?>
       </div>
+
+      <script>
+        // Manejo de clic en categorías y carga dinámica de platos
+        document.querySelectorAll('.category-item').forEach(function(cat) {
+          cat.addEventListener('click', function() {
+            document.querySelectorAll('.category-item').forEach(function(c) { c.classList.remove('active'); });
+            cat.classList.add('active');
+            var catId = cat.getAttribute('data-category-id');
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'obtener_platos_por_categoria.php?category_id=' + catId, true);
+            xhr.onload = function() {
+              if (xhr.status === 200) {
+                document.getElementById('menu-items').innerHTML = xhr.responseText;
+              }
+            };
+            xhr.send();
+          });
+        });
+
+        // Delegación de eventos para los botones activar/desactivar
+        document.addEventListener('click', function(e) {
+          if (e.target.classList.contains('toggle-active-btn')) {
+            var btn = e.target;
+            var dishId = btn.getAttribute('data-dish-id');
+            var isActive = btn.getAttribute('data-active');
+            var newActive = isActive === "1" ? 0 : 1;
+            var catActive = document.querySelector('.category-item.active');
+            var catId = catActive ? catActive.getAttribute('data-category-id') : '';
+            btn.disabled = true;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'actualizar_estado_plato.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+              btn.disabled = false;
+              if (xhr.status === 200) {
+                // Recargar los platos de la categoría actual
+                var xhr2 = new XMLHttpRequest();
+                xhr2.open('GET', 'obtener_platos_por_categoria.php?category_id=' + catId, true);
+                xhr2.onload = function() {
+                  if (xhr2.status === 200) {
+                    document.getElementById('menu-items').innerHTML = xhr2.responseText;
+                  }
+                };
+                xhr2.send();
+              }
+            };
+            xhr.send('dish_id=' + encodeURIComponent(dishId) + '&is_active=' + encodeURIComponent(newActive));
+          }
+        });
+      </script>
     </div>
   </div>
 </div>

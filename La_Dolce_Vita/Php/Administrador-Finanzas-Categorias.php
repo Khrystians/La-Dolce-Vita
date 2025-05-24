@@ -297,7 +297,26 @@
         <a class="nav-link" href="Administrador-menu.php"><i class="bi bi-list"></i> Menú</a>
         <a class="nav-link" href="#"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
         <a class="nav-link" href="#"><i class="bi bi-info-circle"></i> Información General</a> <!-- Nuevo enlace -->
-        <a class="nav-link" href="#"><i class="bi bi-bell"></i> Notificaciones <span class="badge bg-danger">3</span></a> <!-- Notificaciones -->
+        <?php
+          // Obtener el número de notificaciones no leídas
+          $notificaciones = 0;
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              $sqlNotif = "SELECT COUNT(*) as total FROM notifications WHERE is_read = 0";
+              $resNotif = mysqli_query($conexion, $sqlNotif);
+              if ($filaNotif = mysqli_fetch_assoc($resNotif)) {
+                $notificaciones = $filaNotif['total'];
+              }
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {
+            $notificaciones = 0;
+          }
+        ?>
+        
+        <a class="nav-link" href="Administrador-Notificaciones.php"><i class="bi bi-bell"></i> Notificaciones <span class="badge bg-danger"><?php echo $notificaciones; ?></span></a> <!-- Notificaciones -->
       </nav>
 
       <!-- Línea de separación -->

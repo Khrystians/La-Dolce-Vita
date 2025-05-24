@@ -58,7 +58,7 @@
                     <form name="sesiones" id="contactForm" action="Validar_Usuario.php" method="post" enctype="application/x-www-form-urlencoded">
                         <!-- Input de el Usuario -->
                         <div class="row input-group-newsletter">
-                            <div class="col"><input name="usuario" class="form-control" id="email" type="email" placeholder="Introduzca su Usuario" aria-label="Introduzca su Usuario" data-sb-validations="required,email"/></div>
+                            <div class="col"><input name="usuario" class="form-control" id="email" type="text" placeholder="Introduzca su Usuario" aria-label="Introduzca su Usuario" data-sb-validations="required,email"/></div>
                         </div>
 
                         <!-- Input de la Contraseña -->

@@ -4,8 +4,23 @@
         // Extraer los valores introducidos en el formulario
         extract($_POST);
 
-        // Validamos mediante el codigo 
-        if ($usuario == "cristian@gmail.com" && $pass == "1234qwerty") {
+        // Lista de usuarios y contraseñas (uno por cada mesa, solo nombre)
+        $usuarios = [
+            "cristian" => "1234qwerty",
+            "mesa1" => "mesa1pass",
+            "mesa2" => "mesa2pass",
+            "mesa3" => "mesa3pass",
+            "mesa4" => "mesa4pass",
+            "mesa5" => "mesa5pass",
+            "mesa6" => "mesa6pass",
+            "mesa7" => "mesa7pass",
+            "mesa8" => "mesa8pass",
+            "mesa9" => "mesa9pass",
+            "mesa10" => "mesa10pass"
+        ];
+
+        // Validamos mediante el array de usuarios
+        if (isset($usuarios[$usuario]) && $usuarios[$usuario] === $pass) {
             // Si existe el usuario se habre una sesión 
             session_start();
 
@@ -15,7 +30,13 @@
             $_SESSION['hora'] = time(); // ==> Guardamos la hora a la que se inicio la sesión 
             
             // Redireccionamos a la pagina principal
-            header("location:Administrador-menu.php");
+            if ($usuario === "cristian") {
+                header("location:Administrador-menu.php");
+            } else if (strpos($usuario, "mesa") === 0) {
+                header("location:cliente.php");
+            } else {
+                header("location:Login.php?mensaje=error");
+            }
         } else {
             // Si no existe el usuario redireccionamos a la pagina de inicio de sesion con un mensaje de error
             header("location:Login.php?mensaje=error");

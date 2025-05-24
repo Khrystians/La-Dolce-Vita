@@ -318,7 +318,7 @@
         <a class="nav-link" href="Administrador-Finanzas-Categorias.php"><i class="bi bi-bar-chart"></i> Finanzas</a>
         <a class="nav-link" href="Administrador-Calendario.php"><i class="bi bi-calendar"></i> Calendario</a>
         <a class="nav-link" href="Administrador-Eventos.php"><i class="bi bi-calendar-event"></i> Eventos</a>
-        <a class="nav-link active" href="Administrador-Equipo.php"><i class="bi bi-people"></i> Equipo</a>
+        <a class="nav-link" href="Administrador-Equipo.php"><i class="bi bi-people"></i> Equipo</a>
         <a class="nav-link" href="#"><i class="bi bi-egg-fried"></i> Cocina</a> <!-- Nuevo enlace -->
         <a class="nav-link" href="Administrador-menu.php"><i class="bi bi-list"></i> Menú</a>
         <a class="nav-link" href="#"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
@@ -341,7 +341,8 @@
             $notificaciones = 0;
           }
         ?>
-        <a class="nav-link" href="Administrador-Notificaciones.php"><i class="bi bi-bell"></i> Notificaciones <span class="badge bg-danger"><?php echo $notificaciones; ?></span></a> <!-- Notificaciones -->
+        
+        <a class="nav-link active" href="Administrador-Notificaciones.php"><i class="bi bi-bell"></i> Notificaciones <span class="badge bg-danger"><?php echo $notificaciones; ?></span></a> <!-- Notificaciones -->
       </nav>
 
       <!-- Línea de separación -->
@@ -363,6 +364,7 @@
         <br>
         <small>© 2023 La Dolce Vita</small>
       </div>
+      
     </div>
 
     <!-- Main content -->
@@ -383,46 +385,80 @@
         </div>
       </div>
 
-      <!-- Equipo -->
+      <!-- Notificaciones -->
       <div class="container mt-5">
         <h2 class="text-center mt-5" style="font-size: 3rem; font-family: 'Georgia', serif; font-weight: bold; letter-spacing: 2px;">
-          Equipo de La Dolce Vita
+          Notificaciones
         </h2>
 
-        <div class="grid row row-cols-1 row-cols-md-3 g-4 mt-3">
+        <div class="row justify-content-center mt-4 g-3" style="row-gap: 1.5rem;">
           <?php
+            // Silenciar warnings y notices
+            error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
             try {
               require('Conexion.php');
             } catch (Throwable $t) {
-              echo "<p>Mensaje: " . $t->getMessage() . "</p>";
+              //echo "<p>Mensaje: " . $t->getMessage() . "</p>";
               exit();
             }
             try {
               if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
                 mysqli_query($conexion, "SET NAMES 'UTF8'");
                 if (mysqli_select_db($conexion, $bbdd)) {
-                  $consulta = "SELECT * FROM equipo ORDER BY nombre;";
+                  $consulta = "SELECT *, mesa_id FROM notifications ORDER BY created_at DESC;";
                   $resultado = mysqli_query($conexion, $consulta);
                   if (mysqli_errno($conexion) != 0) {
                     exit();
                   } else {
+                    if (mysqli_num_rows($resultado) == 0) {
+                      echo "<div class='col-12'><div class='alert alert-info text-center'>No hay notificaciones.</div></div>";
+                    }
+                    // Cambia a tarjetas más compactas y en grid
                     while ($fila = mysqli_fetch_array($resultado)) {
-                      // Si tienes fotos personalizadas, usa la ruta de la base de datos, si no, usa un avatar por defecto
-                      $foto = isset($fila['foto']) && $fila['foto'] ? "../Assets/Images/Equipo/{$fila['foto']}" : "https://randomuser.me/api/portraits/men/31.jpg";
-                      echo "<div class='col'>
-                              <div class='card text-center shadow-sm'>
-                                <img src='$foto' alt='" . htmlspecialchars($fila['nombre']) . "' class='card-img-top rounded-circle mx-auto' style='width: 160px; height: 160px;'>
-                                <div class='card-body'>
-                                  <h4 class='card-title'><strong>" . htmlspecialchars($fila['nombre']) . "</strong></h4>
-                                  <p class='card-text text-muted'>" . htmlspecialchars($fila['rol']) . "</p>
-                                  <hr style='border: 1px solid #c94b4b;'>
-                                  <p class='card-text'><strong>Rol:</strong> " . htmlspecialchars($fila['descripcion_rol']) . "</p>
-                                  <p class='card-text'><strong>Horario:</strong> " . htmlspecialchars($fila['horario']) . "</p>
-                                  <a href='tel:" . htmlspecialchars($fila['telefono']) . "' class='d-block'>" . htmlspecialchars($fila['telefono']) . "</a>
-                                  <a href='mailto:" . htmlspecialchars($fila['correo_electronico']) . "' class='d-block'>" . htmlspecialchars($fila['correo_electronico']) . "</a>
-                                </div>
+                      $leida = $fila['is_read'] ? 'border-secondary' : 'border-danger border-3';
+                      $icono = $fila['is_read'] ? 'bi bi-bell' : 'bi bi-bell-fill text-danger';
+                      $fecha = date('d/m/Y H:i', strtotime($fila['created_at']));
+                      $mesa = isset($fila['mesa_id']) && $fila['mesa_id'] ? "<span class='badge bg-secondary ms-2'>Mesa: " . htmlspecialchars($fila['mesa_id']) . "</span>" : "";
+                      echo "
+                        <div class='col-12 col-sm-6 col-lg-4'>
+                          <div class='card $leida shadow-sm h-100 d-flex flex-column justify-content-between' style='border-left: 6px solid #c94b4b; min-height: 110px;'>
+                            <div class='card-body d-flex flex-column align-items-start gap-2 p-2'>
+                              <div class='d-flex align-items-center w-100 mb-1'>
+                                <i class='$icono' style='font-size:1.5rem;'></i>
+                                <div class='fw-bold ms-2' style='font-size:1rem; color:#c94b4b;'>$fecha $mesa</div>";
+                      if (!$fila['is_read']) {
+                        echo "<span class='badge bg-danger ms-auto'>Nueva</span>";
+                      }
+                      echo "</div>
+                              <div style='font-size:0.95rem; font-family:Georgia,serif; width:100%;'>" . htmlspecialchars($fila['message']) . "</div>
+                              <div class='d-flex gap-2 mt-2 w-100'>
+                                <form method='post' action='' class='d-inline'>
+                                  <input type='hidden' name='delete_notification_id' value='" . intval($fila['id']) . "'>
+                                  <button type='submit' class='btn btn-outline-danger btn-sm w-100' title='Borrar notificación'>
+                                    <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='currentColor' class='bi bi-trash' viewBox='0 0 16 16'>
+                                      <path d='M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6zm2 .5a.5.5 0 0 1 .5-.5.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6z'/>
+                                      <path fill-rule='evenodd' d='M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2h3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3a1 1 0 0 1 1 1zm-11-1a.5.5 0 0 0-.5.5V4h11V2.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v.5h-2v-.5a.5.5 0 0 0-.5-.5h-3z'/>
+                                    </svg>
+                                  </button>
+                                </form>";
+                      if (!$fila['is_read']) {
+                        echo "
+                                <form method='post' action='' class='d-inline'>
+                                  <input type='hidden' name='mark_read_notification_id' value='" . intval($fila['id']) . "'>
+                                  <button type='submit' class='btn btn-outline-success btn-sm w-100' title='Marcar como leído'>
+                                    <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='currentColor' class='bi bi-check2-circle' viewBox='0 0 16 16'>
+                                      <path d='M2.5 8a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0zm5.5-6a6 6 0 1 0 0 12A6 6 0 0 0 8 2z'/>
+                                      <path d='M10.97 6.97a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06 0l-1.5-1.5a.75.75 0 1 1 1.06-1.06l.97.97 2.47-2.47a.75.75 0 0 1 1.06 0z'/>
+                                    </svg>
+                                  </button>
+                                </form>";
+                      }
+                      echo "
                               </div>
-                            </div>";
+                            </div>
+                          </div>
+                        </div>
+                      ";
                     }
                   }
                 }
@@ -431,8 +467,8 @@
                 throw new mysqli_sql_exception(mysqli_connect_error(), mysqli_connect_errno());
               }
             } catch (mysqli_sql_exception $e) {
-              echo "<p>Nº error: " . $e->getCode() . "</p>";
-              echo "<p>Mensaje: " . $e->getMessage() . "</p>";
+              //echo "<p>Nº error: " . $e->getCode() . "</p>";
+              //echo "<p>Mensaje: " . $e->getMessage() . "</p>";
               exit();
             }
           ?>
@@ -441,6 +477,32 @@
     </div>
   </div>
 </div>
+
+<!-- Manejo de borrado y marcar como leído de notificación (al principio del archivo, antes de mostrar las notificaciones) -->
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  try {
+    require('Conexion.php');
+    if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+      mysqli_query($conexion, "SET NAMES 'UTF8'");
+      if (isset($_POST['delete_notification_id'])) {
+        $id = intval($_POST['delete_notification_id']);
+        mysqli_query($conexion, "DELETE FROM notifications WHERE id = $id");
+      }
+      if (isset($_POST['mark_read_notification_id'])) {
+        $id = intval($_POST['mark_read_notification_id']);
+        mysqli_query($conexion, "UPDATE notifications SET is_read = 1 WHERE id = $id");
+      }
+      mysqli_close($conexion);
+      // Redirigir para evitar reenvío de formulario
+      header("Location: " . $_SERVER['PHP_SELF']);
+      exit();
+    }
+  } catch (Throwable $e) {
+    // Silenciar error
+  }
+}
+?>
 
 </body>
 </html>
