@@ -74,6 +74,20 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      /* --- transición para animación --- */
+      transition: transform 0.3s cubic-bezier(.4,2,.6,1), opacity 0.3s cubic-bezier(.4,2,.6,1);
+      opacity: 1;
+      transform: scale(1);
+      /* Sombra añadida */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .order-card.oculto {
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+    }
+    .order-card.animar {
+      animation: fadeInScale 0.4s cubic-bezier(.4,2,.6,1);
     }
     .order-label {
       background-color: #c0392b;
@@ -124,6 +138,8 @@
       display: flex;
       justify-content: space-between;
       font-size: 16px;
+      /* Sombra añadida */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
     .sidebar-total .price {
       color: #2ecc71;
@@ -152,7 +168,7 @@
       font-size: 16px;
       border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra */
     }
     .finalize-btn:hover {
       background-color: #a93226;
@@ -434,6 +450,8 @@
       border-radius: 6px;
       padding: 8px;
       margin-bottom: 12px;
+      /* Sombra añadida */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
     .item-card img {
       width: 50px;
@@ -504,9 +522,18 @@
       border-radius: 6px;
       cursor: pointer;
       margin-top: 15px;
+      transition: opacity 0.3s cubic-bezier(.4,2,.6,1), transform 0.3s cubic-bezier(.4,2,.6,1);
+      opacity: 1;
+      transform: scale(1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra */
     }
-    .submit-btn:hover {
-      background-color: #a93226;
+    .submit-btn.oculto {
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+    }
+    .submit-btn.animar {
+      animation: fadeInScale 0.4s cubic-bezier(.4,2,.6,1);
     }
     .menu-card-cliente {
       border-radius: 0;
@@ -514,6 +541,8 @@
       padding: 18px;
       width: 20rem;
       margin: 16px auto;
+      /* Sombra añadida */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
     .menu-card-cliente img {
       height: 10rem;
@@ -575,34 +604,67 @@
         </div>
         <hr class="sidebar-hr" />
         <h3 class="sidebar-title">Estado de sus pedidos</h3>
-        <div class="order-card">
-          <span class="order-label">P1</span>
-          <div class="order-info">
-            <h4>"Nombre pedido"</h4>
-            <small>2 items</small>
+        <?php
+          // Mostrar los pedidos realizados por la mesa actual y calcular el precio total
+          $precio_total_pedidos = 0;
+          try {
+            require('Conexion.php');
+            $mesa_num = intval(preg_replace('/\D/', '', $nombreMesa));
+            $pedidos = [];
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              // Buscar id de la mesa
+              $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
+              $rowMesa = mysqli_fetch_assoc($resMesa);
+              $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
+              // Obtener pedidos de la mesa
+              $resPedidos = mysqli_query($conexion, "SELECT * FROM orders WHERE table_id = $table_id ORDER BY created_at DESC LIMIT 5");
+              while ($pedido = mysqli_fetch_assoc($resPedidos)) {
+                // Obtener número de items y calcular el precio de cada pedido
+                $resItems = mysqli_query($conexion, "SELECT od.quantity, d.price FROM order_dishes od JOIN dishes d ON od.dish_id = d.id WHERE od.order_id = " . intval($pedido['id']));
+                $num_items = 0;
+                $precio_pedido = 0;
+                while ($rowItem = mysqli_fetch_assoc($resItems)) {
+                  $num_items += intval($rowItem['quantity']);
+                  $precio_pedido += floatval($rowItem['quantity']) * floatval($rowItem['price']);
+                }
+                $precio_total_pedidos += $precio_pedido;
+                $pedidos[] = [
+                  'id' => $pedido['id'],
+                  'nombre' => $pedido['name'] ? $pedido['name'] : 'Pedido #' . $pedido['id'],
+                  'status' => $pedido['status'],
+                  'num_items' => $num_items
+                ];
+              }
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {
+            $pedidos = [];
+          }
+        ?>
+        <?php foreach ($pedidos as $i => $pedido): ?>
+          <div class="order-card oculto">
+            <span class="order-label">P<?php echo $pedido['id']; ?></span>
+            <div class="order-info">
+              <h4><?php echo htmlspecialchars($pedido['nombre']); ?></h4>
+              <small><?php echo $pedido['num_items']; ?> items</small>
+            </div>
+            <?php
+              $status = strtolower($pedido['status']);
+              $status_class = '';
+              if ($status === 'en cocina') $status_class = 'cocina';
+              elseif ($status === 'entregado') $status_class = 'entregado';
+              else $status_class = 'pendiente';
+            ?>
+            <span class="status <?php echo $status_class; ?>">
+              <?php echo ucfirst($pedido['status']); ?>
+            </span>
           </div>
-          <span class="status cocina">En cocina</span>
-        </div>
-        <div class="order-card">
-          <span class="order-label">P2</span>
-          <div class="order-info">
-            <h4>"Nombre pedido"</h4>
-            <small>4 items</small>
-          </div>
-          <span class="status entregado">Entregado</span>
-        </div>
-        <div class="order-card">
-          <span class="order-label">P3</span>
-          <div class="order-info">
-            <h4>"Nombre pedido"</h4>
-            <small>1 items</small>
-          </div>
-          <span class="status pendiente">Pendiente</span>
-        </div>
+        <?php endforeach; ?>
         <div class="sidebar-divider-red"></div>
         <div class="sidebar-total">
           <span>Precio Total:</span>
-          <span class="price">$XX,X</span>
+          <span class="price"><?php echo '€' . number_format($precio_total_pedidos, 2); ?></span>
         </div>
         <div class="payment-methods">
           <div class="payment-method">
@@ -741,6 +803,20 @@
           });
         }
 
+        // Animar la aparición de los pedidos en el sidebar izquierdo
+        function animarPedidosSidebar() {
+          var cards = document.querySelectorAll('.sidebar .order-card');
+          cards.forEach(function(card, i) {
+            setTimeout(function() {
+              card.classList.remove('oculto');
+              card.classList.add('animar');
+              setTimeout(function() {
+                card.classList.remove('animar');
+              }, 400);
+            }, 60 * i);
+          });
+        }
+
         // --- FUNCIONALIDAD AÑADIR AL SIDEBAR DERECHO ---
         function attachAddButtons() {
           document.querySelectorAll('.menu-card-cliente .btn-success').forEach(function(btn) {
@@ -854,11 +930,58 @@
           }
         }
 
-        // Inicializar eventos al cargar la página
-        attachAddButtons();
-        document.querySelectorAll('.sidebar-right .item-card').forEach(attachQtyButtons);
-        actualizarTotalPedido();
-        animarPlatos();
+        // --- REGISTRAR PEDIDO ---
+        function registrarPedidoHandler() {
+          // Recopilar productos del sidebar derecho
+          var productos = [];
+          document.querySelectorAll('.sidebar-right .item-card').forEach(function(item) {
+            productos.push({
+              nombre: item.querySelector('.item-title').textContent,
+              cantidad: parseInt(item.querySelector('.quantity span').textContent),
+              precio: parseFloat(item.getAttribute('data-precio')) || 0
+            });
+          });
+          if (productos.length === 0) {
+            alert('Añade al menos un producto antes de realizar el pedido.');
+            return;
+          }
+          // Recoger nombre del pedido
+          var nombrePedido = document.querySelector('.pedido-input').value || '';
+          // Recoger mesa (usuario de sesión)
+          var mesa = "<?php echo htmlspecialchars($nombreMesa); ?>";
+          // Enviar por AJAX
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', 'registrar_pedido.php', true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              try {
+                var res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                  alert('Pedido realizado correctamente');
+                  // Limpiar productos del sidebar derecho
+                  document.querySelectorAll('.sidebar-right .item-card').forEach(function(item){ item.remove(); });
+                  actualizarTotalPedido();
+                  location.reload(); // Recargar la página para actualizar el estado de los pedidos
+                } else {
+                  alert('Error al registrar el pedido');
+                }
+              } catch(e) {
+                alert('Pedido realizado correctamente');
+                document.querySelectorAll('.sidebar-right .item-card').forEach(function(item){ item.remove(); });
+                actualizarTotalPedido();
+                location.reload(); // Recargar la página para actualizar el estado de los pedidos
+              }
+            } else {
+              alert('Error de conexión');
+            }
+          };
+          xhr.send(JSON.stringify({
+            mesa: mesa,
+            nombre_pedido: nombrePedido,
+            productos: productos
+          }));
+        }
       </script>
     </div>
 
@@ -879,12 +1002,44 @@
         <span>Costo del pedido :</span>
         <span class="price">$XX,X</span>
       </div>
-      <button class="submit-btn">Realizar pedido</button>
+      <button class="submit-btn" id="btn-realizar-pedido">Realizar pedido</button>
+      <button class="submit-btn" id="btn-confirmar-pedido" style="display:none;background-color:#27ae60;">Confirmar pedido</button>
       <button class="submit-btn" style="background-color:#f1c40f;color:#333;margin-top:10px;">Notificar al camarero</button>
     </div>
     <!-- Fin sidebar derecho -->
   </div>
 </div>
+
+<script>
+  // Inicializar eventos al cargar la página
+  attachAddButtons();
+  document.querySelectorAll('.sidebar-right .item-card').forEach(attachQtyButtons);
+  actualizarTotalPedido();
+  animarPlatos();
+  animarPedidosSidebar();
+
+  // Mostrar botón de confirmación antes de enviar el pedido con transición
+  document.getElementById('btn-realizar-pedido').addEventListener('click', function() {
+    var btnRealizar = this;
+    var btnConfirmar = document.getElementById('btn-confirmar-pedido');
+    // Ocultar con transición
+    btnRealizar.classList.add('oculto');
+    setTimeout(function() {
+      btnRealizar.style.display = 'none';
+      btnConfirmar.style.display = '';
+      btnConfirmar.classList.add('oculto');
+      // Forzar reflow para que la animación se aplique correctamente
+      void btnConfirmar.offsetWidth;
+      btnConfirmar.classList.remove('oculto');
+      btnConfirmar.classList.add('animar');
+      setTimeout(function() {
+        btnConfirmar.classList.remove('animar');
+      }, 400);
+    }, 300);
+  });
+
+  document.getElementById('btn-confirmar-pedido').addEventListener('click', registrarPedidoHandler);
+</script>
 
 </body>
 </html>
