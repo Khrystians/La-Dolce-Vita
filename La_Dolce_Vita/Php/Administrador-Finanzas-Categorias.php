@@ -345,14 +345,40 @@
 
       <!-- Top bar -->
       <div class="row top-bar text-white mb-4">
+        <?php
+          // Calcular ganancias por año, mes, semana y hoy
+          $ganancia_ano = 0;
+          $ganancia_mes = 0;
+          $ganancia_semana = 0;
+          $ganancia_hoy = 0;
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              // Año actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE())");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_ano = floatval($row['total']);
+              // Mes actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE()) AND MONTH(sale_date) = MONTH(CURDATE())");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_mes = floatval($row['total']);
+              // Semana actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE()) AND WEEK(sale_date, 1) = WEEK(CURDATE(), 1)");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_semana = floatval($row['total']);
+              // Hoy
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE sale_date = CURDATE()");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_hoy = floatval($row['total']);
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {}
+        ?>
         <div class="col text-center">
           <img src="../Assets/Images/logos/carrito_de_compra.png" alt="Ventas" style="width: 4rem; height: 3rem; display: block; margin: 0 auto;">
           Ventas en general
         </div>
-        <div class="col">Año<br><span>2024,47€</span></div>
-        <div class="col">Mes<br><span>2024,47€</span></div>
-        <div class="col">Semana<br><span>2024,47€</span></div>
-        <div class="col">Hoy<br><span>2024,47€</span></div>
+        <div class="col">Año<br><span><?php echo number_format($ganancia_ano, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Mes<br><span><?php echo number_format($ganancia_mes, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Semana<br><span><?php echo number_format($ganancia_semana, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Hoy<br><span><?php echo number_format($ganancia_hoy, 2, ',', '.'); ?>€</span></div>
         <div class="col text-center">
           <img src="../Assets/Images/logos/dinero.png" alt="Dinero" style="width: 4rem; height: 3rem; display: block; margin: 0 auto;">
         </div>
@@ -366,37 +392,56 @@
 
       <!-- Contenido de categorías -->
       <div id="categories-view" class="categories-container px-4 mb-4" style="display: flex;">
-        <!-- Categorías -->
-        <div class="category-item">
-          <img src="../Assets/Images/logos/entradas.png" alt="Entradas">
-          <span>Entradas</span>
-          <div class="earnings">+ 500,33€</div> <!-- Ganancias -->
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/pasta.png" alt="Pasta">
-          <span>Pasta</span>
-          <div class="earnings">+ 1200€</div> <!-- Ganancias -->
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/pizza.png" alt="Pizzas">
-          <span>Pizzas</span>
-          <div class="earnings">+ 800,22€</div> <!-- Ganancias -->
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/antipasta.png" alt="AntiPasta">
-          <span>AntiPasta</span>
-          <div class="earnings">+ 300,86€</div> <!-- Ganancias -->
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/bebidas.png" alt="Bebidas">
-          <span>Bebidas</span>
-          <div class="earnings">+ 600,32€</div> <!-- Ganancias -->
-        </div>
-        <div class="category-item">
-          <img src="../Assets/Images/logos/postre.png" alt="Postres">
-          <span>Postres</span>
-          <div class="earnings">+ 400,12€</div> <!-- Ganancias -->
-        </div>
+        <?php
+        // Mostrar las categorías y sus ganancias reales
+        try {
+          require('Conexion.php');
+          $categorias = [];
+          if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+            mysqli_query($conexion, "SET NAMES 'UTF8'");
+            // Obtener todas las categorías
+            $resCat = mysqli_query($conexion, "SELECT id, name FROM categories ORDER BY id");
+            while ($cat = mysqli_fetch_assoc($resCat)) {
+              $categorias[] = $cat;
+            }
+            // Para cada categoría, calcular las ganancias sumando ventas de sus platos
+            foreach ($categorias as $cat) {
+              $cat_id = intval($cat['id']);
+              // Sumar ventas de todos los platos de esta categoría
+              $sql = "
+                SELECT SUM(s.quantity * s.price) AS total
+                FROM sales s
+                JOIN dishes d ON s.dish_id = d.id
+                WHERE d.category_id = $cat_id
+              ";
+              $res = mysqli_query($conexion, $sql);
+              $total = 0;
+              if ($row = mysqli_fetch_assoc($res)) {
+                $total = floatval($row['total']);
+              }
+              // Nombre de la imagen según el nombre de la categoría (en minúsculas)
+              $img = strtolower($cat['name']);
+              // Ajuste para nombres de imagen que no coinciden exactamente
+              if ($img === 'antipasta') $img = 'antipasta';
+              elseif ($img === 'entradas') $img = 'entradas';
+              elseif ($img === 'pasta') $img = 'pasta';
+              elseif ($img === 'pizzas') $img = 'pizzas';
+              elseif ($img === 'bebidas') $img = 'bebidas';
+              elseif ($img === 'postres') $img = 'postres';
+              // Mostrar el div de la categoría
+              echo '<div class="category-item">
+                <img src="../Assets/Images/logos/' . $img . '.png" alt="' . htmlspecialchars($cat['name']) . '">
+                <span>' . htmlspecialchars($cat['name']) . '</span>
+                <div class="earnings">+ ' . number_format($total, 2, ',', '.') . '€</div>
+              </div>';
+            }
+            mysqli_close($conexion);
+          }
+        } catch (Throwable $e) {
+          // Si hay error, mostrar mensaje
+          echo '<div class="text-danger">No se pudieron cargar las ganancias.</div>';
+        }
+        ?>
       </div>
 
     </div>

@@ -345,14 +345,40 @@
 
       <!-- Top bar -->
       <div class="row top-bar text-white mb-4">
+        <?php
+          // Calcular ganancias por año, mes, semana y hoy
+          $ganancia_ano = 0;
+          $ganancia_mes = 0;
+          $ganancia_semana = 0;
+          $ganancia_hoy = 0;
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              // Año actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE())");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_ano = floatval($row['total']);
+              // Mes actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE()) AND MONTH(sale_date) = MONTH(CURDATE())");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_mes = floatval($row['total']);
+              // Semana actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE()) AND WEEK(sale_date, 1) = WEEK(CURDATE(), 1)");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_semana = floatval($row['total']);
+              // Hoy
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE sale_date = CURDATE()");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_hoy = floatval($row['total']);
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {}
+        ?>
         <div class="col text-center">
           <img src="../Assets/Images/logos/carrito_de_compra.png" alt="Ventas" style="width: 4rem; height: 3rem; display: block; margin: 0 auto;">
           Ventas en general
         </div>
-        <div class="col">Año<br><span>2024,47€</span></div>
-        <div class="col">Mes<br><span>2024,47€</span></div>
-        <div class="col">Semana<br><span>2024,47€</span></div>
-        <div class="col">Hoy<br><span>2024,47€</span></div>
+        <div class="col">Año<br><span><?php echo number_format($ganancia_ano, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Mes<br><span><?php echo number_format($ganancia_mes, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Semana<br><span><?php echo number_format($ganancia_semana, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Hoy<br><span><?php echo number_format($ganancia_hoy, 2, ',', '.'); ?>€</span></div>
         <div class="col text-center">
           <img src="../Assets/Images/logos/dinero.png" alt="Dinero" style="width: 4rem; height: 3rem; display: block; margin: 0 auto;">
         </div>

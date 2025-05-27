@@ -367,14 +367,40 @@
 
       <!-- Top bar -->
       <div class="row top-bar text-white mb-4">
+        <?php
+          // Calcular ganancias por año, mes, semana y hoy
+          $ganancia_ano = 0;
+          $ganancia_mes = 0;
+          $ganancia_semana = 0;
+          $ganancia_hoy = 0;
+          try {
+            require('Conexion.php');
+            if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+              mysqli_query($conexion, "SET NAMES 'UTF8'");
+              // Año actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE())");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_ano = floatval($row['total']);
+              // Mes actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE()) AND MONTH(sale_date) = MONTH(CURDATE())");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_mes = floatval($row['total']);
+              // Semana actual
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE YEAR(sale_date) = YEAR(CURDATE()) AND WEEK(sale_date, 1) = WEEK(CURDATE(), 1)");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_semana = floatval($row['total']);
+              // Hoy
+              $res = mysqli_query($conexion, "SELECT SUM(quantity * price) AS total FROM sales WHERE sale_date = CURDATE()");
+              if ($row = mysqli_fetch_assoc($res)) $ganancia_hoy = floatval($row['total']);
+              mysqli_close($conexion);
+            }
+          } catch (Throwable $e) {}
+        ?>
         <div class="col text-center">
           <img src="../Assets/Images/logos/carrito_de_compra.png" alt="Ventas" style="width: 4rem; height: 3rem; display: block; margin: 0 auto;">
           Ventas en general
         </div>
-        <div class="col">Año<br><span>2024,47€</span></div>
-        <div class="col">Mes<br><span>2024,47€</span></div>
-        <div class="col">Semana<br><span>2024,47€</span></div>
-        <div class="col">Hoy<br><span>2024,47€</span></div>
+        <div class="col">Año<br><span><?php echo number_format($ganancia_ano, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Mes<br><span><?php echo number_format($ganancia_mes, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Semana<br><span><?php echo number_format($ganancia_semana, 2, ',', '.'); ?>€</span></div>
+        <div class="col">Hoy<br><span><?php echo number_format($ganancia_hoy, 2, ',', '.'); ?>€</span></div>
         <div class="col text-center">
           <img src="../Assets/Images/logos/dinero.png" alt="Dinero" style="width: 4rem; height: 3rem; display: block; margin: 0 auto;">
         </div>
@@ -388,20 +414,57 @@
 
       <!-- Contenido de mesas -->
       <div id="tables-view" class="d-flex justify-content-center gap-4 flex-wrap" style="display: none;">
-        <!-- Mesas -->
-        <?php for ($i = 1; $i <= 10; $i++): ?>
-          <div class="card">
-            <div class="title">Mesa <?php echo $i; ?></div>
-            <div class="item"><span>Entradas</span><span class="price">+ 200,50€</span></div>
-            <div class="item"><span>Pasta</span><span class="price">+ 526,22€</span></div>
-            <div class="item"><span>Pizzas</span><span class="price">+ 526,22€</span></div>
-            <div class="item"><span>AntiPasta</span><span class="price">+ 526,22€</span></div>
-            <div class="item"><span>Bebidas</span><span class="price">+ 526,22€</span></div>
-            <div class="item"><span>Postres</span><span class="price">+ 526,22€</span></div>
-            <div class="divider"></div>
-            <div class="total">+ 2831,88€</div>
-          </div>
-        <?php endfor; ?>
+        <?php
+        // Obtener categorías para los títulos de cada item
+        $categorias = [];
+        try {
+          require('Conexion.php');
+          if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+            mysqli_query($conexion, "SET NAMES 'UTF8'");
+            $resCat = mysqli_query($conexion, "SELECT id, name FROM categories ORDER BY id");
+            while ($cat = mysqli_fetch_assoc($resCat)) {
+              $categorias[] = $cat;
+            }
+            // Obtener todas las mesas
+            $resMesas = mysqli_query($conexion, "SELECT id, number FROM tables ORDER BY number");
+            while ($mesa = mysqli_fetch_assoc($resMesas)) {
+              $mesa_id = intval($mesa['id']);
+              $mesa_num = intval($mesa['number']);
+              $totales_categoria = [];
+              $total_mesa = 0;
+              // Para cada categoría, sumar ventas de todos los platos de esa categoría para esta mesa
+              foreach ($categorias as $cat) {
+                $cat_id = intval($cat['id']);
+                $sql = "
+                  SELECT SUM(s.quantity * s.price) AS total
+                  FROM sales s
+                  JOIN dishes d ON s.dish_id = d.id
+                  WHERE s.table_id = $mesa_id AND d.category_id = $cat_id
+                ";
+                $res = mysqli_query($conexion, $sql);
+                $total_cat = 0;
+                if ($row = mysqli_fetch_assoc($res)) {
+                  $total_cat = floatval($row['total']);
+                }
+                $totales_categoria[$cat['name']] = $total_cat;
+                $total_mesa += $total_cat;
+              }
+              // Renderizar la tarjeta de la mesa
+              echo '<div class="card">';
+              echo '<div class="title">Mesa ' . $mesa_num . '</div>';
+              foreach ($categorias as $cat) {
+                echo '<div class="item"><span>' . htmlspecialchars($cat['name']) . '</span><span class="price">+ ' . number_format($totales_categoria[$cat['name']], 2, ',', '.') . '€</span></div>';
+              }
+              echo '<div class="divider"></div>';
+              echo '<div class="total">+ ' . number_format($total_mesa, 2, ',', '.') . '€</div>';
+              echo '</div>';
+            }
+            mysqli_close($conexion);
+          }
+        } catch (Throwable $e) {
+          echo '<div class="text-danger">No se pudieron cargar las ganancias de las mesas.</div>';
+        }
+        ?>
       </div>
     </div>
   </div>
