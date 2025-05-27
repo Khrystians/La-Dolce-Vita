@@ -1,3 +1,46 @@
+<?php
+// Nuevo script PHP para procesar la petición AJAX del botón "Finalizar"
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos'])) {
+  session_start();
+  $mesa = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '';
+  $mesa_num = intval(preg_replace('/\D/', '', $mesa));
+  $success = false;
+  try {
+    require('Conexion.php');
+    if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+      mysqli_query($conexion, "SET NAMES 'UTF8'");
+      // Buscar id de la mesa
+      $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
+      $rowMesa = mysqli_fetch_assoc($resMesa);
+      $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
+      // Obtener todos los pedidos de la mesa que no estén finalizados (entregados)
+      $resPedidos = mysqli_query($conexion, "SELECT * FROM orders WHERE table_id = $table_id");
+      while ($pedido = mysqli_fetch_assoc($resPedidos)) {
+        $order_id = intval($pedido['id']);
+        // Obtener los platos y cantidades de cada pedido
+        $resItems = mysqli_query($conexion, "SELECT od.dish_id, od.quantity, d.price FROM order_dishes od JOIN dishes d ON od.dish_id = d.id WHERE od.order_id = $order_id");
+        while ($item = mysqli_fetch_assoc($resItems)) {
+          $dish_id = intval($item['dish_id']);
+          $qty = intval($item['quantity']);
+          $price = floatval($item['price']);
+          // Insertar en sales
+          mysqli_query($conexion, "INSERT INTO sales (table_id, dish_id, quantity, price, sale_date) VALUES ($table_id, $dish_id, $qty, $price, CURDATE())");
+        }
+        // Eliminar los platos del pedido (por ON DELETE CASCADE, basta con eliminar el pedido)
+        // Eliminar el pedido
+        mysqli_query($conexion, "DELETE FROM orders WHERE id = $order_id");
+      }
+      mysqli_close($conexion);
+      $success = true;
+    }
+  } catch (Throwable $e) {
+    $success = false;
+  }
+  header('Content-Type: application/json');
+  echo json_encode(['success' => $success]);
+  exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,7 +50,8 @@
         $mesaAleatoria = "Mesa" . rand(1, 10);
         $_SESSION['usuario'] = strtolower($mesaAleatoria);
     }
-    $nombreMesa = isset($_SESSION['usuario']) ? ucfirst($_SESSION['usuario']) : 'Mesa';
+    // Insertar un espacio entre el 4º y 5º carácter del nombre de la mesa
+    $nombreMesa = isset($_SESSION['usuario']) ? ucfirst(substr($_SESSION['usuario'], 0, 4) . ' ' . substr($_SESSION['usuario'], 4)) : 'Mesa';
   ?>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -680,7 +724,7 @@
             <div>PayPal</div>
           </div>
         </div>
-        <button class="finalize-btn">Finalizar</button>
+        <button class="finalize-btn" id="btn-finalizar-pedidos">Finalizar</button>
         <!-- Fecha actual -->
         <div class="text-center mb-3 sidebar-date">
           <small class="text-muted"><?php echo date('d/m/Y'); ?></small>
@@ -1039,6 +1083,27 @@
   });
 
   document.getElementById('btn-confirmar-pedido').addEventListener('click', registrarPedidoHandler);
+
+  // Evento para finalizar y registrar ganancias
+  document.getElementById('btn-finalizar-pedidos').addEventListener('click', function() {
+    // Primera confirmación
+    if (!confirm('¿Desea finalizar y registrar las ganancias de todos los pedidos de esta mesa?')) return;
+    // Segunda confirmación
+    if (!confirm('¿Está seguro? Esta acción eliminará todos los pedidos de la mesa.')) return;
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function() {
+      btn.disabled = false;
+      btn.textContent = 'Finalizar';
+      // Recargar la página siempre tras la petición
+      location.reload();
+    };
+    xhr.send('finalizar_pedidos=1');
+  });
 </script>
 
 </body>
