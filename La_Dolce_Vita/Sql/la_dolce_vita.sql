@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 27-05-2025 a las 22:53:12
+-- Tiempo de generación: 29-05-2025 a las 23:55:59
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -148,7 +148,8 @@ INSERT INTO `dishes` (`id`, `name`, `description`, `price`, `image_url`, `catego
 (57, 'Vino Tinto della Casa', 'Copa de vino tinto italiano', 3.50, 'img/vino_tinto.jpg', 5, 1),
 (58, 'Vino Blanco della Casa', 'Copa de vino blanco italiano', 3.50, 'img/vino_blanco.jpg', 5, 1),
 (59, 'Spritz Aperol', 'Aperitivo de Aperol con prosecco y soda', 4.50, 'img/spritz.jpg', 5, 1),
-(60, 'Cerveza Italiana', 'Botella de birra Moretti o Peroni', 3.20, 'img/cerveza.jpg', 5, 1);
+(60, 'Cerveza Italiana', 'Botella de birra Moretti o Peroni', 3.20, 'img/cerveza.jpg', 5, 1),
+(61, 'Prueba 1', 'Plato añadido de prueba', 1.00, 'img/plato_68377dc572abe.jpg', 6, 0);
 
 -- --------------------------------------------------------
 
@@ -267,7 +268,9 @@ INSERT INTO `dish_allergens` (`dish_id`, `allergen_id`) VALUES
 (57, 7),
 (58, 7),
 (59, 7),
-(60, 1);
+(60, 1),
+(61, 3),
+(61, 6);
 
 -- --------------------------------------------------------
 
@@ -317,10 +320,14 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `message`, `created_at`, `is_read`, `mesa_id`) VALUES
-(1, 'Nuevo pedido recibido de la mesa 3', '2025-05-18 18:17:27', 0, 3),
-(3, 'El pedido #1 ha sido entregado', '2025-05-18 18:17:27', 1, 1),
+(1, 'Nuevo pedido recibido de la mesa 3', '2025-05-18 18:17:27', 1, 3),
 (5, 'El pedido #4 fue cancelado por el cliente', '2025-05-18 18:17:27', 1, 2),
-(8, 'Mesa 7 ha realizado un nuevo pedido', '2025-05-18 18:17:27', 0, 7);
+(11, 'Mesa 5 solicita atención del camarero', '2025-05-28 17:51:05', 0, 5),
+(12, 'Mesa 10 solicita atención del camarero', '2025-05-28 17:52:16', 0, 10),
+(13, 'Mesa 10 solicita atención del camarero', '2025-05-28 19:10:29', 0, 10),
+(14, 'Nota de la mesa 5: Sin sal', '2025-05-29 09:10:43', 0, 5),
+(15, 'Nota de la mesa 0: Con mas sal', '2025-05-29 17:22:49', 0, 1),
+(16, 'Nota de la mesa 1: Sin sal', '2025-05-29 17:25:58', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -347,7 +354,7 @@ INSERT INTO `orders` (`id`, `table_id`, `name`, `status`, `created_at`, `updated
 (16, 8, 'Nombre del pedido', 'en cocina', '2025-05-26 18:36:18', '2025-05-27 16:34:47'),
 (18, 9, 'Nombre del pedido', 'entregado', '2025-05-26 21:18:04', '2025-05-26 21:18:28'),
 (25, 2, 'Nombre del pedido', 'entregado', '2025-05-27 17:52:14', '2025-05-27 18:16:03'),
-(26, 2, 'Nombre del pedido', 'pendiente', '2025-05-27 17:52:24', '2025-05-27 17:52:24'),
+(26, 2, 'Nombre del pedido', 'en cocina', '2025-05-27 17:52:24', '2025-05-29 21:16:04'),
 (27, 3, 'Prueba 3 | Mesa 3', 'pendiente', '2025-05-27 17:53:05', '2025-05-27 17:53:05'),
 (28, 4, 'Prueba 4', 'en cocina', '2025-05-27 17:56:53', '2025-05-27 18:15:01'),
 (29, 5, 'Pedido 5', 'pendiente', '2025-05-27 18:05:34', '2025-05-27 18:05:34'),
@@ -355,7 +362,12 @@ INSERT INTO `orders` (`id`, `table_id`, `name`, `status`, `created_at`, `updated
 (31, 6, 'Prueba 6', 'pendiente', '2025-05-27 18:09:39', '2025-05-27 18:09:39'),
 (32, 7, 'Nombre del pedido', 'en cocina', '2025-05-27 18:09:59', '2025-05-27 18:15:08'),
 (33, 8, 'Nombre del pedido', 'pendiente', '2025-05-27 18:10:21', '2025-05-27 18:10:21'),
-(34, 10, 'Nombre del pedido', 'en cocina', '2025-05-27 18:14:10', '2025-05-27 18:15:12');
+(34, 10, 'Nombre del pedido', 'en cocina', '2025-05-27 18:14:10', '2025-05-27 18:15:12'),
+(37, 10, 'Nombre del pedido', 'pendiente', '2025-05-28 20:05:41', '2025-05-28 20:05:41'),
+(38, 10, 'Nombre del pedido', 'pendiente', '2025-05-28 21:00:41', '2025-05-28 21:00:41'),
+(46, 1, 'Nombre del pedido', 'pendiente', '2025-05-29 21:06:25', '2025-05-29 21:06:25'),
+(47, 1, 'Nombre del pedido', 'pendiente', '2025-05-29 21:06:34', '2025-05-29 21:06:34'),
+(48, 1, 'Nombre del pedido', 'pendiente', '2025-05-29 21:35:24', '2025-05-29 21:35:24');
 
 -- --------------------------------------------------------
 
@@ -435,7 +447,15 @@ INSERT INTO `order_dishes` (`id`, `order_id`, `dish_id`, `quantity`) VALUES
 (111, 34, 41, 1),
 (112, 34, 51, 4),
 (113, 34, 31, 1),
-(114, 34, 35, 1);
+(114, 34, 35, 1),
+(117, 37, 3, 1),
+(118, 38, 3, 2),
+(139, 46, 22, 1),
+(140, 46, 48, 1),
+(141, 46, 59, 2),
+(142, 47, 51, 1),
+(143, 48, 8, 1),
+(144, 48, 7, 1);
 
 -- --------------------------------------------------------
 
@@ -504,7 +524,27 @@ INSERT INTO `sales` (`id`, `table_id`, `dish_id`, `quantity`, `price`, `sale_dat
 (45, 1, 21, 1, 8.00, '2025-05-27'),
 (46, 1, 58, 2, 3.50, '2025-05-27'),
 (47, 1, 2, 1, 6.00, '2025-05-27'),
-(48, 1, 2, 1, 6.00, '2025-05-27');
+(48, 1, 2, 1, 6.00, '2025-05-27'),
+(49, 1, 2, 1, 6.00, '2025-05-29'),
+(50, 1, 3, 1, 8.00, '2025-05-29'),
+(51, 1, 4, 1, 7.50, '2025-05-29'),
+(52, 1, 52, 1, 2.50, '2025-05-29'),
+(53, 1, 54, 1, 2.80, '2025-05-29'),
+(54, 1, 51, 1, 1.50, '2025-05-29'),
+(55, 1, 2, 1, 6.00, '2025-05-29'),
+(56, 1, 3, 1, 8.00, '2025-05-29'),
+(57, 1, 4, 1, 7.50, '2025-05-29'),
+(58, 1, 11, 1, 9.50, '2025-05-29'),
+(59, 1, 12, 1, 10.00, '2025-05-29'),
+(60, 1, 3, 1, 8.00, '2025-05-29'),
+(61, 1, 12, 1, 10.00, '2025-05-29'),
+(62, 1, 51, 2, 1.50, '2025-05-29'),
+(63, 1, 3, 1, 8.00, '2025-05-29'),
+(64, 1, 22, 1, 9.00, '2025-05-29'),
+(65, 1, 51, 1, 1.50, '2025-05-29'),
+(66, 1, 4, 1, 7.50, '2025-05-29'),
+(67, 1, 2, 1, 6.00, '2025-05-29'),
+(68, 1, 3, 1, 8.00, '2025-05-29');
 
 -- --------------------------------------------------------
 
@@ -629,7 +669,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT de la tabla `dishes`
 --
 ALTER TABLE `dishes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT de la tabla `equipo`
@@ -641,25 +681,25 @@ ALTER TABLE `equipo`
 -- AUTO_INCREMENT de la tabla `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT de la tabla `order_dishes`
 --
 ALTER TABLE `order_dishes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
 
 --
 -- AUTO_INCREMENT de la tabla `sales`
 --
 ALTER TABLE `sales`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT de la tabla `tables`
