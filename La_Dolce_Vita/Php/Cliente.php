@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
     }
     .sidebar {
       background-color: white;
-      height: 200vh;
+      /* height: 200vh;  Elimina altura fija */
       padding: 0;
       border-right: 1px solid #ddd;
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
@@ -72,6 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
       display: flex;
       flex-direction: column;
       justify-content: stretch;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 100vh;
+      overflow-y: auto;
     }
     .sidebar-content {
       width: 100%;
@@ -88,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
       margin-top: 38px;
     }
     .logo img {
-      width: 120px;
+      width: 20rem;
       max-width: 100%;
     }
     .logo h2 {
@@ -100,7 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
     .sidebar-hr {
       border: none;
       border-top: 3px solid #ccc;
-      margin: 20px 0;
+      margin-top: -3rem;
+      margin-bottom: 2rem;
     }
     .sidebar-title {
       font-size: 18px;
@@ -450,9 +456,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
       max-width: 100vw;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
       padding: 20px;
-      position: relative;
+      position: sticky;
+      top: 0;
+      z-index: 100;
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
     }
     .sidebar-right h2 {
       font-size: 2.1rem;
@@ -643,8 +653,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
     <div class="sidebar d-flex flex-column" style="flex:0 0 320px;max-width:350px;margin-left:-12px;">
       <div class="sidebar-content">
         <div class="logo">
-          <img src="../Assets/Images/La Dolce Vita icon 1.png" alt="Logo pizza" />
-          <h2>LA DOLCE VITA</h2>
+          <img src="../Assets/Images/La Dolce Vita icon.png" alt="Logo pizza" />
         </div>
         <hr class="sidebar-hr" />
         <h3 class="sidebar-title">Estado de sus pedidos</h3>
@@ -736,7 +745,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
     <div class="flex-grow-1" style="min-width:0;">
       <!-- Buscador de platos -->
       <div class="px-4 mb-3 mt-5">
-        <input type="text" id="buscador-platos" class="form-control form-control-lg" placeholder="Buscar platos...">
+        <div class="input-group input-group-lg">
+          <input type="text" id="buscador-platos" class="form-control" placeholder="Buscar platos...">
+          <span class="input-group-text" style="background:transparent;border-left:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#888" viewBox="0 0 24 24">
+              <path d="M10.5 3a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm8.03 13.47 2.5 2.5a1 1 0 0 1-1.42 1.42l-2.5-2.5a9 9 0 1 1 1.42-1.42z"/>
+            </svg>
+          </span>
+        </div>
       </div>
       <!-- Categorías -->
       <div class="categories-container px-4 mb-4">
@@ -756,8 +772,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
           } catch (Throwable $e) {}
         ?>
         <?php foreach ($categorias as $i => $cat): ?>
-          <div class="category-item<?php if ($i === 0) echo ' active'; ?>" data-category-id="<?php echo $cat['id']; ?>">
-            <img src="../Assets/Images/logos/<?php echo strtolower($cat['name']); ?>.png" alt="<?php echo htmlspecialchars($cat['name']); ?>">
+          <?php
+            $isActive = ($i === 0);
+            $imgBase = strtolower($cat['name']);
+            $imgFile = $imgBase . ($isActive ? '_negro' : '') . '.png';
+          ?>
+          <div class="category-item<?php if ($isActive) echo ' active'; ?>" data-category-id="<?php echo $cat['id']; ?>">
+            <img src="../Assets/Images/logos/<?php echo $imgFile; ?>" alt="<?php echo htmlspecialchars($cat['name']); ?>">
             <span><?php echo htmlspecialchars($cat['name']); ?></span>
           </div>
         <?php endforeach; ?>
@@ -782,7 +803,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
                 }
                 echo '<div class="col">
                         <div class="card menu-card-cliente shadow-sm" data-precio="' . floatval($dish['price']) . '">
-                          <img src="' . htmlspecialchars($dish['image_url']) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
+                          <img src="../Assets/Images/Dishes/' . htmlspecialchars(substr_replace(substr($dish['image_url'], 4), 'png', -3)) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
                           <div class="card-body text-center">
                             <h6 class="card-title mb-1">' . htmlspecialchars($dish['name']) . '</h6>
                             <div class="allergens" style="gap: 16px;">';
@@ -790,13 +811,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
                   $icon = strtolower($al);
                   echo '<img src="../Assets/Images/logos/' . $icon . '.png" alt="' . htmlspecialchars($al) . '" style="width:2.6rem;height:2.6rem;">';
                 }
+                // Línea divisora roja centrada, descripción y precio
                 echo    '</div>
-                            <!-- Precio oculto -->
-                            <button class="btn btn-success w-100 mt-2">Añadir</button>
-                            <button class="btn btn-outline-primary w-100 mt-2">Detalles</button>
-                          </div>
+                          <hr style="border: none; border-top: 2px solid #c94b4b; width: 60%; margin: 12px auto 8px auto;">
+                          <div style="color:#555; font-size:1rem; margin-bottom:4px; min-height:38px;">' . htmlspecialchars($dish['description']) . '</div>
+                          <div style="color:#27ae60; font-weight:bold; font-size:1.2rem; margin-bottom:8px;">€' . number_format($dish['price'], 2) . '</div>
+                          <button class="btn btn-success w-100 mt-2">Añadir</button>
                         </div>
-                      </div>';
+                      </div>
+                    </div>';
               }
               mysqli_close($conexion);
             }
@@ -804,20 +827,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
         ?>
       </div>
 
+      <!-- Modal de detalles del plato -->
+      <div class="modal fade" id="detallePlatoModal" tabindex="-1" aria-labelledby="detallePlatoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header" style="border-bottom:1px solid #eee;">
+              <h5 class="modal-title" id="detallePlatoLabel"></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+              <img id="detallePlatoImg" src="" alt="" style="width:220px;height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;">
+              <div id="detallePlatoCategoria" style="font-size:1.1rem;color:#c0392b;font-weight:bold;margin-bottom:8px;"></div>
+              <div id="detallePlatoAlergenos" style="margin-bottom:10px;display:flex;justify-content:center;gap:10px;"></div>
+              <div id="detallePlatoDesc" style="margin-bottom:10px;color:#555;"></div>
+              <div id="detallePlatoPrecio" style="font-size:1.3rem;color:#27ae60;font-weight:bold;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
       <script>
         // Manejo de clic en categorías y carga dinámica de platos activos
         document.querySelectorAll('.category-item').forEach(function(cat) {
           cat.addEventListener('click', function() {
-            document.querySelectorAll('.category-item').forEach(function(c) { c.classList.remove('active'); });
+            document.querySelectorAll('.category-item').forEach(function(c) {
+              c.classList.remove('active');
+              // Restaurar logo normal
+              var img = c.querySelector('img');
+              var base = img.getAttribute('alt').toLowerCase();
+              img.src = "../Assets/Images/logos/" + base + ".png";
+            });
             cat.classList.add('active');
+            // Cambiar logo a _negro
+            var img = cat.querySelector('img');
+            var base = img.getAttribute('alt').toLowerCase();
+            img.src = "../Assets/Images/logos/" + base + "_negro.png";
             var catId = cat.getAttribute('data-category-id');
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'obtener_platos_cliente.php?category_id=' + catId, true);
             xhr.onload = function() {
               if (xhr.status === 200) {
                 document.getElementById('menu-items').innerHTML = xhr.responseText;
-                attachAddButtons();
-                animarPlatos();
+                afterMenuItemsUpdate();
               }
             };
             xhr.send();
@@ -1026,7 +1078,190 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
             productos: productos
           }));
         }
+
+        // MODAL DETALLE PLATO
+        function attachDetalleButtons() {
+          document.querySelectorAll('.menu-card-cliente .btn-outline-primary').forEach(function(btn) {
+            btn.onclick = function() {
+              var card = btn.closest('.menu-card-cliente');
+              var nombre = card.querySelector('.card-title').textContent;
+              var categoria = document.querySelector('.category-item.active span').textContent;
+              var xhr = new XMLHttpRequest();
+              xhr.open('GET', 'obtener_detalle_plato.php?nombre=' + encodeURIComponent(nombre) + '&categoria=' + encodeURIComponent(categoria), true);
+              xhr.onload = function() {
+                if (xhr.status === 200) {
+                  try {
+                    var data = JSON.parse(xhr.responseText);
+                    var precio = data.precio ? '€' + parseFloat(data.precio).toFixed(2) : 'Sin precio';
+                    var descripcion = data.descripcion || 'Sin descripción';
+                    alert('Precio: ' + precio + '\nDescripción: ' + descripcion);
+                  } catch(e) {
+                    alert('No se pudo cargar el detalle del plato.');
+                  }
+                } else {
+                  alert('No se pudo cargar el detalle del plato.');
+                }
+              };
+              xhr.send();
+            };
+          });
+        }
+
+        // Llamar después de cargar platos dinámicamente
+        function afterMenuItemsUpdate() {
+          attachAddButtons();
+          attachDetalleButtons();
+          animarPlatos();
+        }
+
+        // Inicializar eventos al cargar la página
+        attachAddButtons();
+        attachDetalleButtons();
+        document.querySelectorAll('.sidebar-right .item-card').forEach(attachQtyButtons);
+        actualizarTotalPedido();
+        animarPlatos();
+        animarPedidosSidebar();
+
+        // Mostrar botón de confirmación antes de enviar el pedido con transición
+        document.getElementById('btn-realizar-pedido').addEventListener('click', function() {
+          var btnRealizar = this;
+          var btnConfirmar = document.getElementById('btn-confirmar-pedido');
+          // Ocultar con transición
+          btnRealizar.classList.add('oculto');
+          setTimeout(function() {
+            btnRealizar.style.display = 'none';
+            btnConfirmar.style.display = '';
+            btnConfirmar.classList.add('oculto');
+            // Forzar reflow para que la animación se aplique correctamente
+            void btnConfirmar.offsetWidth;
+            btnConfirmar.classList.remove('oculto');
+            btnConfirmar.classList.add('animar');
+            setTimeout(function() {
+              btnConfirmar.classList.remove('animar');
+            }, 400);
+          }, 300);
+        });
+
+        document.getElementById('btn-confirmar-pedido').addEventListener('click', registrarPedidoHandler);
+
+        // Evento para finalizar y registrar ganancias
+        document.getElementById('btn-finalizar-pedidos').addEventListener('click', function() {
+          // Primera confirmación
+          if (!confirm('¿Desea finalizar y registrar las ganancias de todos los pedidos de esta mesa?')) return;
+          // Segunda confirmación
+          if (!confirm('¿Está seguro? Esta acción eliminará todos los pedidos de la mesa.')) return;
+          var btn = this;
+          btn.disabled = true;
+          btn.textContent = 'Procesando...';
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', '', true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          xhr.onload = function() {
+            btn.disabled = false;
+            btn.textContent = 'Finalizar';
+            // Recargar la página siempre tras la petición
+            location.reload();
+          };
+          xhr.send('finalizar_pedidos=1');
+        });
+
+        // --- NOTIFICAR AL CAMARERO ---
+        document.querySelector('.sidebar-right .submit-btn[style*="background-color:#f1c40f"]').addEventListener('click', function() {
+          var mesa = "<?php echo htmlspecialchars($nombreMesa); ?>";
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', '', true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              try {
+                var res = JSON.parse(xhr.responseText);
+                if (res.notificacion_enviada) {
+                  alert('Notificación enviada al camarero.');
+                } else {
+                  alert('No se pudo enviar la notificación.');
+                }
+              } catch(e) {
+                alert('Notificación enviada al camarero.');
+              }
+            } else {
+              alert('Error de conexión.');
+            }
+          };
+          xhr.send('notificar_camarero=1&mesa=' + encodeURIComponent(mesa));
+        });
+
+        // --- NUEVO: Enviar nota al camarero ---
+        document.getElementById('btn-enviar-nota').addEventListener('click', function() {
+          var nota = document.getElementById('nota-camarero').value.trim();
+          var msg = document.getElementById('nota-msg');
+          if (!nota) {
+            msg.textContent = 'Por favor, escriba una nota antes de enviar.';
+            msg.style.color = '#e74c3c';
+            return;
+          }
+          this.disabled = true;
+          msg.textContent = 'Enviando...';
+          msg.style.color = '#333';
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', '', true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          xhr.onload = function() {
+            document.getElementById('btn-enviar-nota').disabled = false;
+            try {
+              var res = JSON.parse(xhr.responseText);
+              if (res.nota_enviada) {
+                msg.textContent = 'Nota enviada al camarero.';
+                msg.style.color = '#27ae60';
+                document.getElementById('nota-camarero').value = '';
+              } else {
+                msg.textContent = 'No se pudo enviar la nota.';
+                msg.style.color = '#e74c3c';
+              }
+            } catch(e) {
+              msg.textContent = 'Nota enviada al camarero.';
+              msg.style.color = '#27ae60';
+              document.getElementById('nota-camarero').value = '';
+            }
+          };
+          xhr.onerror = function() {
+            document.getElementById('btn-enviar-nota').disabled = false;
+            msg.textContent = 'Error de conexión.';
+            msg.style.color = '#e74c3c';
+          };
+          xhr.send('enviar_nota_camarero=1&nota=' + encodeURIComponent(nota));
+        });
       </script>
+
+      <?php
+      // --- NUEVO: Procesar notificación al camarero ---
+      if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['notificar_camarero'])) {
+        session_start();
+        $mesa = isset($_POST['mesa']) ? $_POST['mesa'] : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '');
+        $mesa_num = intval(preg_replace('/\D/', '', $mesa));
+        $notificacion_enviada = false;
+        try {
+          require('Conexion.php');
+          if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+            mysqli_query($conexion, "SET NAMES 'UTF8'");
+            // Buscar id de la mesa
+            $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
+            $rowMesa = mysqli_fetch_assoc($resMesa);
+            $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
+            $mensaje = "Mesa $mesa_num solicita atención del camarero";
+            $stmt = mysqli_prepare($conexion, "INSERT INTO notifications (message, mesa_id) VALUES (?, ?)");
+            mysqli_stmt_bind_param($stmt, "si", $mensaje, $table_id);
+            $notificacion_enviada = mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+            mysqli_close($conexion);
+          }
+        } catch (Throwable $e) {
+          $notificacion_enviada = false;
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['notificacion_enviada' => $notificacion_enviada]);
+        exit;
+      }
+      ?>
     </div>
 
     <!-- Sidebar derecho (pegado a la derecha) -->
@@ -1040,9 +1275,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
       </div>
       <hr />
       
+      <!-- Separador rojo entre nota y productos -->
       <div class="sidebar-divider-red"></div>
+      <!-- Productos añadidos y resto del sidebar derecho -->
       <!-- Total y botón -->
-      <div class="cost-summary">
+
+      <!-- NUEVO: Campo de nota para el camarero -->
+      <div style="margin-bottom:12px;">
+        <label for="nota-camarero" style="font-weight:bold;font-size:15px;">Nota para el camarero:</label>
+        <textarea id="nota-camarero" class="form-control" rows="2" maxlength="200" placeholder="Ej: Sin sal, alérgico a frutos secos..."></textarea>
+        <button id="btn-enviar-nota" class="btn btn-warning w-100 mt-2" style="color:#333;">Enviar nota</button>
+        
+        <div id="nota-msg" style="font-size:13px;margin-top:6px;"></div>
+        <hr />
+      </div>
+      <div class="cost-summary" style="margin-top:-1rem;">
         <span>Costo del pedido :</span>
         <span class="price">$XX,X</span>
       </div>
@@ -1057,6 +1304,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
 <script>
   // Inicializar eventos al cargar la página
   attachAddButtons();
+  attachDetalleButtons();
   document.querySelectorAll('.sidebar-right .item-card').forEach(attachQtyButtons);
   actualizarTotalPedido();
   animarPlatos();
@@ -1104,7 +1352,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
     };
     xhr.send('finalizar_pedidos=1');
   });
+
+  // --- NOTIFICAR AL CAMARERO ---
+  document.querySelector('.sidebar-right .submit-btn[style*="background-color:#f1c40f"]').addEventListener('click', function() {
+    var mesa = "<?php echo htmlspecialchars($nombreMesa); ?>";
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var res = JSON.parse(xhr.responseText);
+          if (res.notificacion_enviada) {
+            alert('Notificación enviada al camarero.');
+          } else {
+            alert('No se pudo enviar la notificación.');
+          }
+        } catch(e) {
+          alert('Notificación enviada al camarero.');
+        }
+      } else {
+        alert('Error de conexión.');
+      }
+    };
+    xhr.send('notificar_camarero=1&mesa=' + encodeURIComponent(mesa));
+  });
+
+  // --- NUEVO: Enviar nota al camarero ---
+  document.getElementById('btn-enviar-nota').addEventListener('click', function() {
+    var nota = document.getElementById('nota-camarero').value.trim();
+    var msg = document.getElementById('nota-msg');
+    if (!nota) {
+      msg.textContent = 'Por favor, escriba una nota antes de enviar.';
+      msg.style.color = '#e74c3c';
+      return;
+    }
+    this.disabled = true;
+    msg.textContent = 'Enviando...';
+    msg.style.color = '#333';
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function() {
+      document.getElementById('btn-enviar-nota').disabled = false;
+      try {
+        var res = JSON.parse(xhr.responseText);
+        if (res.nota_enviada) {
+          msg.textContent = 'Nota enviada al camarero.';
+          msg.style.color = '#27ae60';
+          document.getElementById('nota-camarero').value = '';
+        } else {
+          msg.textContent = 'No se pudo enviar la nota.';
+          msg.style.color = '#e74c3c';
+        }
+      } catch(e) {
+        msg.textContent = 'Nota enviada al camarero.';
+        msg.style.color = '#27ae60';
+        document.getElementById('nota-camarero').value = '';
+      }
+    };
+    xhr.onerror = function() {
+      document.getElementById('btn-enviar-nota').disabled = false;
+      msg.textContent = 'Error de conexión.';
+      msg.style.color = '#e74c3c';
+    };
+    xhr.send('enviar_nota_camarero=1&nota=' + encodeURIComponent(nota));
+  });
 </script>
 
+<?php
+// --- NUEVO: Procesar notificación al camarero ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['notificar_camarero'])) {
+  session_start();
+  $mesa = isset($_POST['mesa']) ? $_POST['mesa'] : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '');
+  $mesa_num = intval(preg_replace('/\D/', '', $mesa));
+  $notificacion_enviada = false;
+  try {
+    require('Conexion.php');
+    if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+      mysqli_query($conexion, "SET NAMES 'UTF8'");
+      // Buscar id de la mesa
+      $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
+      $rowMesa = mysqli_fetch_assoc($resMesa);
+      $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
+      $mensaje = "Mesa $mesa_num solicita atención del camarero";
+      $stmt = mysqli_prepare($conexion, "INSERT INTO notifications (message, mesa_id) VALUES (?, ?)");
+      mysqli_stmt_bind_param($stmt, "si", $mensaje, $table_id);
+      $notificacion_enviada = mysqli_stmt_execute($stmt);
+      mysqli_stmt_close($stmt);
+      mysqli_close($conexion);
+    }
+  } catch (Throwable $e) {
+    $notificacion_enviada = false;
+  }
+  header('Content-Type: application/json');
+  echo json_encode(['notificacion_enviada' => $notificacion_enviada]);
+  exit;
+}
+
+// --- NUEVO: Procesar nota para el camarero ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['enviar_nota_camarero'])) {
+  session_start();
+  $mesa = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '';
+  $mesa_num = intval(preg_replace('/\D/', '', $mesa));
+  $nota = isset($_POST['nota']) ? trim($_POST['nota']) : '';
+  $nota_enviada = false;
+  if ($nota !== '') {
+    try {
+      require('Conexion.php');
+      if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
+        mysqli_query($conexion, "SET NAMES 'UTF8'");
+        // Buscar id de la mesa
+        $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
+        $rowMesa = mysqli_fetch_assoc($resMesa);
+        $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
+        $mensaje = "Nota de la mesa $mesa_num: $nota";
+        $stmt = mysqli_prepare($conexion, "INSERT INTO notifications (message, mesa_id) VALUES (?, ?)");
+        mysqli_stmt_bind_param($stmt, "si", $mensaje, $table_id);
+        $nota_enviada = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        mysqli_close($conexion);
+      }
+    } catch (Throwable $e) {
+      $nota_enviada = false;
+    }
+  }
+  header('Content-Type: application/json');
+  echo json_encode(['nota_enviada' => $nota_enviada]);
+  exit;
+}
+
+
+?>
 </body>
 </html>

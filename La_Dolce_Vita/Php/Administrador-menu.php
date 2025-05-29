@@ -11,10 +11,16 @@
     }
     .sidebar {
       background-color: white;
-      height: 210vh; /* Ajusta la altura de la barra lateral */
+      height: 130vh; /* Ajusta la altura de la barra lateral */
       padding: 20px;
       border-right: 1px solid #ddd;
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Añade sombra al sidebar */
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      /* Elimina height fijo si quieres que ocupe toda la pantalla: */
+      
+      overflow-y: auto;
     }
     .sidebar .user-info {
       text-align: center;
@@ -177,12 +183,11 @@
     <div class="col-md-2 sidebar d-flex flex-column">
       <!-- Logo y Nombre del Restaurante -->
       <div class="text-center mb-4">
-        <img src="../Assets/Images/La Dolce Vita icon 1.png" alt="Logo" class="img-fluid mb-3"  style="width: 11rem;"> <!-- Aumenta el tamaño del logo -->
-        <h4 style="font-size: 1.8rem; margin-top: -1rem;">LA DOLCE VITA</h4> <!-- Aumenta el tamaño del texto -->
+        <img src="../Assets/Images/La Dolce Vita icon.png" alt="Logo" class="img-fluid"  style="width: 20rem;"> <!-- Aumenta el tamaño del logo -->
       </div>
 
       <!-- Línea de separación -->
-      <div class="divider"></div>
+      <div class="divider" style="margin-top: -2rem;"></div>
 
       <!-- Fecha actual -->
       <div class="text-center mb-3">
@@ -206,8 +211,8 @@
         <a class="nav-link" href="Administrador-Equipo.php"><i class="bi bi-people"></i> Equipo</a>
         <a class="nav-link" href="Cocina-Pendientes.php"><i class="bi bi-egg-fried"></i> Cocina</a> <!-- Nuevo enlace -->
         <a class="nav-link active" href="Administrador-menu.php"><i class="bi bi-list"></i> Menú</a>
-        <a class="nav-link" href="#"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
-        <a class="nav-link" href="#"><i class="bi bi-info-circle"></i> Información General</a> <!-- Nuevo enlace -->
+        <a class="nav-link" href="Administrador-Añadir.php"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
+        
         <?php
           // Obtener el número de notificaciones no leídas
           $notificaciones = 0;
@@ -233,11 +238,6 @@
       <!-- Línea de separación -->
       <div class="divider mt-5"></div>
 
-      <!-- Botón de Redes Sociales -->
-      <div class="social-btn mb-3 text-center">
-        <button class="btn btn-success w-75">Redes Sociales</button> <!-- Cambiado a verde -->
-      </div>
-
       <!-- Botón de Deslogearse -->
       <div class="logout-btn text-center">
         <button class="btn btn-danger w-75 mb-3">Deslogearse</button>
@@ -247,7 +247,7 @@
       <div class="footer mt-auto">
         <small>Versión 1.0.0</small>
         <br>
-        <small>© 2023 La Dolce Vita</small>
+        <small>© 2025 La Dolce Vita</small>
       </div>
     </div>
 
@@ -340,7 +340,7 @@
                 }
                 echo '<div class="col">
                         <div class="card menu-card shadow-sm">
-                          <img src="' . htmlspecialchars($dish['image_url']) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
+                          <img src="../Assets/Images/Dishes/' . htmlspecialchars(substr_replace(substr($dish['image_url'], 4), 'png', -3)) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
                           <div class="card-body text-center">
                             <h6 class="card-title mb-1">' . htmlspecialchars($dish['name']) . '</h6>
                             <div class="allergens">';
@@ -371,18 +371,48 @@
         // Manejo de clic en categorías y carga dinámica de platos
         document.querySelectorAll('.category-item').forEach(function(cat) {
           cat.addEventListener('click', function() {
-            document.querySelectorAll('.category-item').forEach(function(c) { c.classList.remove('active'); });
+            document.querySelectorAll('.category-item').forEach(function(c) {
+              c.classList.remove('active');
+              // Restaurar logo normal
+              var img = c.querySelector('img');
+              var base = img.getAttribute('alt').toLowerCase();
+              img.src = "../Assets/Images/logos/" + base + ".png";
+            });
             cat.classList.add('active');
+            // Cambiar logo a _negro
+            var img = cat.querySelector('img');
+            var base = img.getAttribute('alt').toLowerCase();
+            img.src = "../Assets/Images/logos/" + base + "_negro.png";
             var catId = cat.getAttribute('data-category-id');
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'obtener_platos_por_categoria.php?category_id=' + catId, true);
             xhr.onload = function() {
               if (xhr.status === 200) {
                 document.getElementById('menu-items').innerHTML = xhr.responseText;
+                animarPlatos();
               }
             };
             xhr.send();
           });
+        });
+
+        // Animación de entrada para los platos
+        function animarPlatos() {
+          var cards = document.querySelectorAll('#menu-items .menu-card');
+          cards.forEach(function(card, i) {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(function() {
+              card.style.transition = 'opacity 0.4s cubic-bezier(.4,2,.6,1), transform 0.4s cubic-bezier(.4,2,.6,1)';
+              card.style.opacity = '1';
+              card.style.transform = 'scale(1)';
+            }, 60 * i);
+          });
+        }
+
+        // Llama a la animación al cargar la página por primera vez
+        document.addEventListener('DOMContentLoaded', function() {
+          animarPlatos();
         });
 
         // Delegación de eventos para los botones activar/desactivar
@@ -416,6 +446,10 @@
           }
         });
       </script>
+
+      <!-- Elfsight All-in-One Chat | Untitled All-in-One Chat -->
+      <script src="https://static.elfsight.com/platform/platform.js" async></script>
+      <div class="elfsight-app-0c3b7783-a3f5-4753-9ffe-587f92446b2d" data-elfsight-app-lazy></div>
     </div>
   </div>
 </div>

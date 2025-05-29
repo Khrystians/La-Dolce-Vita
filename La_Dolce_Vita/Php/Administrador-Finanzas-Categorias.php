@@ -11,10 +11,11 @@
     }
     .sidebar {
       background-color: white;
-      height: 145vh; /* Ajusta la altura de la barra lateral */
+      
       padding: 20px;
       border-right: 1px solid #ddd;
       box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Añade sombra al sidebar */
+      position: sticky;
     }
     .sidebar .user-info {
       text-align: center;
@@ -266,12 +267,11 @@
     <div class="col-md-2 sidebar d-flex flex-column">
       <!-- Logo y Nombre del Restaurante -->
       <div class="text-center mb-4">
-        <img src="../Assets/Images/La Dolce Vita icon 1.png" alt="Logo" class="img-fluid mb-3" style="width: 10rem;"> <!-- Incrementa el tamaño del logo -->
-        <h4 style="font-size: 1.8rem; margin-top: -1rem;">LA DOLCE VITA</h4> <!-- Aumenta el tamaño del texto -->
+        <img src="../Assets/Images/La Dolce Vita icon.png" alt="Logo" class="img-fluid"  style="width: 20rem;"> <!-- Aumenta el tamaño del logo -->
       </div>
 
       <!-- Línea de separación -->
-      <div class="divider"></div>
+      <div class="divider" style="margin-top: -2rem;"></div>
 
       <!-- Fecha actual -->
       <div class="text-center mb-3">
@@ -322,11 +322,6 @@
       <!-- Línea de separación -->
       <div class="divider mt-5"></div>
 
-      <!-- Botón de Redes Sociales -->
-      <div class="social-btn mb-3 text-center">
-        <button class="btn btn-success w-75">Redes Sociales</button> <!-- Cambiado a verde -->
-      </div>
-
       <!-- Botón de Deslogearse -->
       <div class="logout-btn text-center">
         <button class="btn btn-danger w-75 mb-3">Deslogearse</button>
@@ -336,7 +331,7 @@
       <div class="footer mt-auto">
         <small>Versión 1.0.0</small>
         <br>
-        <small>© 2023 La Dolce Vita</small>
+        <small>© 2025 La Dolce Vita</small>
       </div>
     </div>
 
@@ -444,6 +439,9 @@
         ?>
       </div>
 
+      <!-- Elfsight All-in-One Chat | Untitled All-in-One Chat -->
+      <script src="https://static.elfsight.com/platform/platform.js" async></script>
+      <div class="elfsight-app-0c3b7783-a3f5-4753-9ffe-587f92446b2d" data-elfsight-app-lazy></div>
     </div>
   </div>
 </div>

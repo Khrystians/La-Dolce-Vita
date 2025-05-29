@@ -17,7 +17,7 @@ if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
     }
     echo '<div class="col">
             <div class="card menu-card shadow-sm">
-              <img src="' . htmlspecialchars($dish['image_url']) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
+              <img src="../Assets/Images/Dishes/' . htmlspecialchars(substr_replace(substr($dish['image_url'], 4), 'png', -3)) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
               <div class="card-body text-center">
                 <h6 class="card-title mb-1">' . htmlspecialchars($dish['name']) . '</h6>
                 <div class="allergens">';

@@ -422,7 +422,7 @@
   <div class="top-bar">
     <!-- Logo + Nombre -->
     <div class="logo-section">
-      <img src="../Assets/Images/La Dolce Vita icon 1.png" alt="logo" />
+      <img src="../Assets/Images/La Dolce Vita icon.png" alt="logo"  />
       <span><strong>LA DOLCE VITA</strong></span>
     </div>
 
