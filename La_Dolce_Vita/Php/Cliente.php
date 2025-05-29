@@ -1,20 +1,25 @@
 <?php
-// Nuevo script PHP para procesar la petición AJAX del botón "Finalizar"
+// --- Nuevo script PHP para procesar la petición AJAX del botón "Finalizar" ---
+// Si la petición es POST y viene de finalizar pedidos
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos'])) {
-  session_start();
+  session_start(); // Iniciar sesión para acceder a la mesa del usuario
+  // Obtener el nombre de la mesa desde la sesión, si existe
   $mesa = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '';
+  // Extraer el número de la mesa (elimina cualquier carácter no numérico)
   $mesa_num = intval(preg_replace('/\D/', '', $mesa));
-  $success = false;
+  $success = false; // Variable para saber si la operación fue exitosa
   try {
-    require('Conexion.php');
+    require('Conexion.php'); // Incluir archivo de conexión a la base de datos
+    // Intentar conectar a la base de datos
     if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
-      mysqli_query($conexion, "SET NAMES 'UTF8'");
-      // Buscar id de la mesa
+      mysqli_query($conexion, "SET NAMES 'UTF8'"); // Establecer codificación UTF8
+      // Buscar el id de la mesa en la tabla 'tables'
       $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
       $rowMesa = mysqli_fetch_assoc($resMesa);
-      $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
-      // Obtener todos los pedidos de la mesa que no estén finalizados (entregados)
+      $table_id = $rowMesa ? intval($rowMesa['id']) : 1; // Si no existe, usar 1 por defecto
+      // Obtener todos los pedidos de la mesa (no filtrados por estado)
       $resPedidos = mysqli_query($conexion, "SELECT * FROM orders WHERE table_id = $table_id");
+      // Recorrer cada pedido de la mesa
       while ($pedido = mysqli_fetch_assoc($resPedidos)) {
         $order_id = intval($pedido['id']);
         // Obtener los platos y cantidades de cada pedido
@@ -23,19 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
           $dish_id = intval($item['dish_id']);
           $qty = intval($item['quantity']);
           $price = floatval($item['price']);
-          // Insertar en sales
+          // Insertar cada plato del pedido en la tabla 'sales' (ventas)
           mysqli_query($conexion, "INSERT INTO sales (table_id, dish_id, quantity, price, sale_date) VALUES ($table_id, $dish_id, $qty, $price, CURDATE())");
         }
-        // Eliminar los platos del pedido (por ON DELETE CASCADE, basta con eliminar el pedido)
-        // Eliminar el pedido
+        // Eliminar el pedido (por ON DELETE CASCADE también elimina los platos asociados)
         mysqli_query($conexion, "DELETE FROM orders WHERE id = $order_id");
       }
-      mysqli_close($conexion);
-      $success = true;
+      mysqli_close($conexion); // Cerrar conexión
+      $success = true; // Operación exitosa
     }
   } catch (Throwable $e) {
-    $success = false;
+    $success = false; // Si hay error, marcar como fallo
   }
+  // Devolver respuesta JSON al frontend
   header('Content-Type: application/json');
   echo json_encode(['success' => $success]);
   exit;
@@ -45,605 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
 <html lang="es">
 <head>
   <?php
-    session_start();
+    session_start(); // Iniciar sesión para identificar la mesa del usuario
+    // Si no existe usuario en sesión, asignar una mesa aleatoria
     if (!isset($_SESSION['usuario'])) {
         $mesaAleatoria = "Mesa" . rand(1, 10);
         $_SESSION['usuario'] = strtolower($mesaAleatoria);
     }
-    // Insertar un espacio entre el 4º y 5º carácter del nombre de la mesa
+    // Formatear el nombre de la mesa para mostrarlo con espacio (ej: Mesa 1)
     $nombreMesa = isset($_SESSION['usuario']) ? ucfirst(substr($_SESSION['usuario'], 0, 4) . ' ' . substr($_SESSION['usuario'], 4)) : 'Mesa';
   ?>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Menú - La Dolce Vita</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f6f6f6;
-    }
-    .sidebar {
-      background-color: white;
-      /* height: 200vh;  Elimina altura fija */
-      padding: 0;
-      border-right: 1px solid #ddd;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-      min-width: 300px;
-      max-width: 150vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: stretch;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    .sidebar-content {
-      width: 100%;
-      height: 100%;
-      padding-left: 18px;
-      padding-right: 18px;
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 auto;
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 28px;
-      margin-top: 38px;
-    }
-    .logo img {
-      width: 20rem;
-      max-width: 100%;
-    }
-    .logo h2 {
-      margin: 16px 0 0;
-      font-size: 16px;
-      font-weight: normal;
-      letter-spacing: 1px;
-    }
-    .sidebar-hr {
-      border: none;
-      border-top: 3px solid #ccc;
-      margin-top: -3rem;
-      margin-bottom: 2rem;
-    }
-    .sidebar-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      padding-left: 4px;
-      padding-right: 4px;
-    }
-    .order-card {
-      border: 1px solid #ccc;
-      border-left: 5px solid #c0392b;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      /* --- transición para animación --- */
-      transition: transform 0.3s cubic-bezier(.4,2,.6,1), opacity 0.3s cubic-bezier(.4,2,.6,1);
-      opacity: 1;
-      transform: scale(1);
-      /* Sombra añadida */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    .order-card.oculto {
-      opacity: 0;
-      transform: scale(0.95);
-      pointer-events: none;
-    }
-    .order-card.animar {
-      animation: fadeInScale 0.4s cubic-bezier(.4,2,.6,1);
-    }
-    .order-label {
-      background-color: #c0392b;
-      color: white;
-      font-weight: bold;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      margin-right: 10px;
-    }
-    .order-info {
-      flex: 1;
-    }
-    .order-info h4 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: normal;
-    }
-    .order-info small {
-      font-size: 12px;
-      color: #555;
-    }
-    .status {
-      font-size: 12px;
-      font-weight: bold;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-align: center;
-      white-space: nowrap;
-    }
-    .cocina {
-      background-color: #f1c40f;
-      color: #333;
-    }
-    .entregado {
-      background-color: #2ecc71;
-      color: white;
-    }
-    .pendiente {
-      background-color: #e74c3c;
-      color: white;
-    }
-    .sidebar-total {
-      margin-top: 30px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 16px;
-      /* Sombra añadida */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    .sidebar-total .price {
-      color: #2ecc71;
-      font-weight: bold;
-    }
-    .payment-methods {
-      display: flex;
-      justify-content: space-around;
-      margin: 20px 0;
-    }
-    .payment-method {
-      text-align: center;
-      font-size: 12px;
-    }
-    .payment-method img {
-      width: 30px;
-      height: 30px;
-      margin-bottom: 5px;
-    }
-    .finalize-btn {
-      background-color: #c0392b;
-      color: white;
-      border: none;
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra */
-    }
-    .finalize-btn:hover {
-      background-color: #a93226;
-    }
-    .sidebar-date {
-      margin-top: 20px;
-    }
-    .nav-link {
-      font-size: 1.5rem; /* Aumenta aún más el tamaño del texto */
-      color: #6c757d; /* Cambia el color a gris */
-      transition: color 0.2s ease-in-out; /* Transición suave para el color */
-      display: flex;
-      align-items: center;
-      gap: 10px; /* Espaciado entre el ícono y el texto */
-    }
-    .nav-link:hover {
-      color: #343a40; /* Cambia el color al pasar el cursor */
-    }
-    .nav-link.active {
-      color: #000; /* Cambia el color del link seleccionado a negro */
-      font-weight: bold; /* Resalta el link seleccionado */
-    }
-    .top-bar {
-      background-color: #c94b4b;
-      color: white;
-      padding: 10px 0;
-      display: flex;
-      align-items: center; /* Centra verticalmente */
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Añade sombra al topbar */
-    }
-    .top-bar .col {
-      text-align: center;
-      border-right: 1px solid white;
-      font-size: 1.2rem; /* Aumenta el tamaño del texto */
-      display: flex;
-      flex-direction: column;
-      justify-content: center; /* Centra horizontalmente */
-    }
-    .top-bar .col:last-child {
-      border-right: none;
-    }
-    .top-bar .col span {
-      color:rgb(31, 198, 70); /* Muestra el dinero ganado en verde */
-      font-weight: bold;
-      /* border: 1px solid white;  Añade un ligero borde blanco */
-      padding: 2px 5px; /* Espaciado interno */
-      border-radius: 5px; /* Bordes redondeados */
-    }
-    .category-item {
-      background-color: white;
-      border: none;
-      padding: 14px;
-      margin: 0.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease-in-out;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 8rem;
-      height: 9rem;
-      text-align: center;
-      cursor: pointer;
-    }
-    .category-item:hover {
-      transform: scale(1.12);
-      background-color: #c94b4b;
-      color: white;
-    }
-    .category-item img {
-      width: 3.5rem;
-      height: 3.5rem;
-      margin-bottom: 8px;
-    }
-    .category-item span {
-      font-size: 1.25rem;
-      font-family: 'Georgia', serif;
-    }
-    .category-item .earnings {
-      font-size: 1rem;
-      color: rgb(31, 198, 70);
-      font-weight: bold;
-      margin-top: 0.3rem;
-    }
-    .category-item.active {
-      background-color: #c94b4b;
-      color: white;
-    }
-    .categories-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      gap: 0.5rem;
-      padding-bottom: 10px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .categories-container::-webkit-scrollbar {
-      display: none;
-    }
-    .menu-card {
-      border-radius: 0;
-      overflow: hidden;
-      padding: 6px;
-      width: 1rem;  /* Más angosto aún */
-      margin: 6px auto;
-    }
-    .menu-card img {
-      height: 4rem;
-      object-fit: cover;
-      margin-bottom: 6px;
-      border-radius: 8px;
-    }
-    .menu-card button {
-      font-size: 0.9rem;
-      font-weight: normal;
-    }
-    .menu-card h6 {
-      font-size: 0.9rem;
-      margin-top: -0.3rem;
-    }
-    .menu-card .allergens {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-      margin-top: 4px;
-    }
-    .menu-card .allergens img {
-      width: 1rem;
-      height: 1rem;
-    }
-    .footer {
-      background-color: #c94b4b; /* Mismo color que el topbar */
-      color: white;
-      padding: 10px 0;
-      text-align: center;
-    }
-    .section-title {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: bold;
-      margin-bottom: 1rem;
-      position: relative;
-      color: #6c757d; /* Color gris inicial */
-      text-decoration: none; /* Quita el subrayado */
-      color: inherit; /* Mantiene el color del texto */
-    }
-    .section-title:hover {
-      text-decoration: none; /* Asegura que no se subraye al pasar el cursor */
-    }
-    .section-title:not(.active) {
-      color: #a0a0a0; /* Hace que los links no activos sean más grises */
-    }
-    .section-title.active {
-      color:rgb(0, 0, 0); /* Hace que el link activo sea más gris */
-    }
-    .section-title::after {
-      content: '';
-      display: block;
-      width: 90%; /* Incrementa el ancho de la línea roja */
-      height: 2px;
-      background-color: #c94b4b; /* Línea roja */
-      margin: 0.5rem auto 0;
-    }
-    .section-titles-container {
-      display: flex;
-      justify-content: center;
-      gap: 20rem; /* Incrementa el espaciado entre los títulos */
-      margin-bottom: 2rem; /* Espaciado inferior */
-      margin-top: 4rem; /* Espaciado inferior */
-    }
-    .card {
-      background-color: white;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      width: 350px; /* Reduce el ancho de las tarjetas */
-      margin: 20px; /* Incrementa la separación entre las tarjetas */
-      transition: transform 0.2s ease-in-out;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .title {
-      font-size: 2rem; /* Incrementa el tamaño del título */
-      font-weight: bold;
-      margin-bottom: 1rem;
-      text-align: center;
-      font-family: 'Georgia', serif; /* Aplica la fuente Georgia */
-    }
-    .item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #ddd;
-    }
-    .item:last-child {
-      border-bottom: none;
-    }
-    .price {
-      font-weight: bold;
-      color: rgb(31, 198, 70);
-    }
-    .total {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-top: 10px;
-      text-align: center;
-    }
-    .divider {
-      height: 1px;
-      background-color: #c94b4b; /* Cambia el color del divisor a rojo */
-      margin: 10px 0;
-    }
-    .hidden {
-      display: none; /* Oculta el contenido */
-    }
-    .sidebar-divider-red {
-      height: 3rem;
-      background: linear-gradient(to bottom, #000 0 0.2rem, #c94b4b 0.2rem calc(100% - 0.2rem), #000 calc(100% - 0.2rem) 100%);
-      border: none;
-      margin: 22px -18px 22px -18px;
-      width: calc(100% + 36px);
-      border-radius: 0;
-    }
-
-    /* Sidebar derecho nuevo */
-    .sidebar-right {
-      background-color: white;
-      min-height: 100vh;
-      width: 320px;
-      max-width: 100vw;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-      padding: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    .sidebar-right h2 {
-      font-size: 2.1rem;
-      margin-bottom: 10px;
-    }
-    .pedido-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .pedido-header h3 {
-      display: none;
-    }
-    .pedido-header .pedido-input {
-      font-weight: bold;
-      font-size: 1.5rem;
-      color: #333;
-      margin: 0;
-      border: none;
-      background: transparent;
-      outline: none;
-      width: 100%;
-      max-width: 270px;
-      padding: 0 4px;
-    }
-    .edit-icon {
-      width: 20px;
-      height: 20px;
-    }
-    .sidebar-right hr {
-      border: none;
-      border-top: 1px solid #ccc;
-      margin: 15px 0;
-    }
-    .item-card {
-      display: flex;
-      align-items: center;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 8px;
-      margin-bottom: 12px;
-      /* Sombra añadida */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    .item-card img {
-      width: 50px;
-      height: 50px;
-      border-radius: 4px;
-      margin-right: 10px;
-      object-fit: cover;
-    }
-    .item-details {
-      flex: 1;
-    }
-    .item-title {
-      font-weight: bold;
-      font-size: 14px;
-      margin: 0;
-    }
-    .item-subtitle {
-      font-size: 12px;
-      color: gray;
-      margin: 0;
-    }
-    .item-price {
-      font-size: 14px;
-      color: #27ae60;
-      font-weight: bold;
-      margin: 0;
-    }
-    .quantity {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: 10px;
-    }
-    .qty-btn {
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      font-size: 16px;
-      cursor: pointer;
-      line-height: 1;
-    }
-    .qty-btn.add {
-      background-color: #c0392b;
-    }
-    .cost-summary {
-      margin-top: 30px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 15px;
-    }
-    .cost-summary .price {
-      color: #2ecc71;
-      font-weight: bold;
-    }
-    .submit-btn {
-      background-color: #c0392b;
-      color: white;
-      border: none;
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: opacity 0.3s cubic-bezier(.4,2,.6,1), transform 0.3s cubic-bezier(.4,2,.6,1);
-      opacity: 1;
-      transform: scale(1);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra */
-    }
-    .submit-btn.oculto {
-      opacity: 0;
-      transform: scale(0.95);
-      pointer-events: none;
-    }
-    .submit-btn.animar {
-      animation: fadeInScale 0.4s cubic-bezier(.4,2,.6,1);
-    }
-    .menu-card-cliente {
-      border-radius: 0;
-      overflow: hidden;
-      padding: 18px;
-      width: 20rem;
-      margin: 16px auto;
-      /* Sombra añadida */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    .menu-card-cliente img {
-      height: 10rem;
-      object-fit: cover;
-      margin-bottom: 14px;
-      border-radius: 8px;
-    }
-    .menu-card-cliente button {
-      font-size: 1.1rem;
-      font-weight: normal;
-    }
-    .menu-card-cliente h6 {
-      font-size: 1.4rem;
-      margin-top: -0.3rem;
-    }
-    .menu-card-cliente .allergens {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .menu-card-cliente .allergens img {
-      width: 2rem;
-      height: 2rem;
-    }
-    .menu-card-cliente,
-    .item-card {
-      /* ...otras reglas... */
-      transition: transform 0.3s cubic-bezier(.4,2,.6,1), opacity 0.3s cubic-bezier(.4,2,.6,1);
-      opacity: 1;
-      transform: scale(1);
-    }
-    .menu-card-cliente.oculto,
-    .item-card.oculto {
-      opacity: 0;
-      transform: scale(0.95);
-      pointer-events: none;
-    }
-    .menu-card-cliente.animar,
-    .item-card.animar {
-      animation: fadeInScale 0.4s cubic-bezier(.4,2,.6,1);
-    }
-    @keyframes fadeInScale {
-      0% { opacity: 0; transform: scale(0.95);}
-      100% { opacity: 1; transform: scale(1);}
-    }
-  </style>
+  <link rel="stylesheet" href="../Css/Cliente.css">
 </head>
 <body>
 
@@ -659,10 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
         <h3 class="sidebar-title">Estado de sus pedidos</h3>
         <?php
           // Mostrar los pedidos realizados por la mesa actual y calcular el precio total
-          $precio_total_pedidos = 0;
+          $precio_total_pedidos = 0; // Inicializar el total
           try {
-            require('Conexion.php');
-            $mesa_num = intval(preg_replace('/\D/', '', $nombreMesa));
+            require('Conexion.php'); // Incluir conexión
+            $mesa_num = intval(preg_replace('/\D/', '', $nombreMesa)); // Extraer número de mesa
             $pedidos = [];
             if ($conexion = mysqli_connect($servidor, $usuario, $password, $bbdd)) {
               mysqli_query($conexion, "SET NAMES 'UTF8'");
@@ -670,10 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
               $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
               $rowMesa = mysqli_fetch_assoc($resMesa);
               $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
-              // Obtener pedidos de la mesa
+              // Obtener últimos 5 pedidos de la mesa
               $resPedidos = mysqli_query($conexion, "SELECT * FROM orders WHERE table_id = $table_id ORDER BY created_at DESC LIMIT 5");
               while ($pedido = mysqli_fetch_assoc($resPedidos)) {
-                // Obtener número de items y calcular el precio de cada pedido
+                // Calcular número de items y precio de cada pedido
                 $resItems = mysqli_query($conexion, "SELECT od.quantity, d.price FROM order_dishes od JOIN dishes d ON od.dish_id = d.id WHERE od.order_id = " . intval($pedido['id']));
                 $num_items = 0;
                 $precio_pedido = 0;
@@ -681,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
                   $num_items += intval($rowItem['quantity']);
                   $precio_pedido += floatval($rowItem['quantity']) * floatval($rowItem['price']);
                 }
-                $precio_total_pedidos += $precio_pedido;
+                $precio_total_pedidos += $precio_pedido; // Sumar al total
                 $pedidos[] = [
                   'id' => $pedido['id'],
                   'nombre' => $pedido['name'] ? $pedido['name'] : 'Pedido #' . $pedido['id'],
@@ -795,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
               $sql = "SELECT * FROM dishes WHERE category_id = $cat_id AND is_active=1";
               $resDishes = mysqli_query($conexion, $sql);
               while ($dish = mysqli_fetch_assoc($resDishes)) {
-                // Obtener alérgenos
+                // Obtener alérgenos del plato
                 $allergens = [];
                 $resAll = mysqli_query($conexion, "SELECT a.name FROM dish_allergens da JOIN allergens a ON da.allergen_id = a.id WHERE da.dish_id = " . intval($dish['id']));
                 while ($a = mysqli_fetch_assoc($resAll)) {
@@ -849,26 +269,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
       <script>
         // Manejo de clic en categorías y carga dinámica de platos activos
+        // Selecciona todos los elementos de categoría y les añade un event listener para el evento 'click'
         document.querySelectorAll('.category-item').forEach(function(cat) {
           cat.addEventListener('click', function() {
+            // Al hacer clic en una categoría, primero se eliminan las clases 'active' de todas las categorías
             document.querySelectorAll('.category-item').forEach(function(c) {
               c.classList.remove('active');
-              // Restaurar logo normal
+              // Restaurar el logo normal (no negro) para todas las categorías
               var img = c.querySelector('img');
               var base = img.getAttribute('alt').toLowerCase();
               img.src = "../Assets/Images/logos/" + base + ".png";
             });
+            // Se añade la clase 'active' a la categoría seleccionada
             cat.classList.add('active');
-            // Cambiar logo a _negro
+            // Cambia el logo de la categoría seleccionada a la versión '_negro'
             var img = cat.querySelector('img');
             var base = img.getAttribute('alt').toLowerCase();
             img.src = "../Assets/Images/logos/" + base + "_negro.png";
+            // Obtiene el id de la categoría seleccionada
             var catId = cat.getAttribute('data-category-id');
+            // Realiza una petición AJAX para obtener los platos de la categoría seleccionada
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'obtener_platos_cliente.php?category_id=' + catId, true);
             xhr.onload = function() {
               if (xhr.status === 200) {
+                // Al recibir la respuesta, actualiza el contenido de los platos en el menú
                 document.getElementById('menu-items').innerHTML = xhr.responseText;
+                // Llama a la función para reactivar los eventos y animaciones en los nuevos elementos cargados
                 afterMenuItemsUpdate();
               }
             };
@@ -877,8 +304,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
         });
 
         // Buscador de platos (filtra por nombre de plato)
+        // Añade un event listener al input de búsqueda para filtrar los platos por nombre en tiempo real
         document.getElementById('buscador-platos').addEventListener('input', function() {
-          var filtro = this.value.toLowerCase();
+          var filtro = this.value.toLowerCase(); // Convierte el texto ingresado a minúsculas para comparar
+          // Recorre todas las tarjetas de platos y muestra/oculta según si el nombre incluye el filtro
           document.querySelectorAll('#menu-items .card.menu-card-cliente').forEach(function(card) {
             var nombre = card.querySelector('.card-title').textContent.toLowerCase();
             card.parentElement.style.display = nombre.includes(filtro) ? '' : 'none';
@@ -1236,6 +665,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
       // --- NUEVO: Procesar notificación al camarero ---
       if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['notificar_camarero'])) {
         session_start();
+        // Obtener la mesa desde POST o sesión
         $mesa = isset($_POST['mesa']) ? $_POST['mesa'] : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : '');
         $mesa_num = intval(preg_replace('/\D/', '', $mesa));
         $notificacion_enviada = false;
@@ -1247,7 +677,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
             $resMesa = mysqli_query($conexion, "SELECT id FROM tables WHERE number = $mesa_num LIMIT 1");
             $rowMesa = mysqli_fetch_assoc($resMesa);
             $table_id = $rowMesa ? intval($rowMesa['id']) : 1;
+            // Mensaje de notificación para el camarero
             $mensaje = "Mesa $mesa_num solicita atención del camarero";
+            // Insertar notificación en la base de datos
             $stmt = mysqli_prepare($conexion, "INSERT INTO notifications (message, mesa_id) VALUES (?, ?)");
             mysqli_stmt_bind_param($stmt, "si", $mensaje, $table_id);
             $notificacion_enviada = mysqli_stmt_execute($stmt);
@@ -1257,6 +689,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_pedidos']))
         } catch (Throwable $e) {
           $notificacion_enviada = false;
         }
+        // Devolver respuesta JSON
         header('Content-Type: application/json');
         echo json_encode(['notificacion_enviada' => $notificacion_enviada]);
         exit;

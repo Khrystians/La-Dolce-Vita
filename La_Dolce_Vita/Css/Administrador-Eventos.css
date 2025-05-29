@@ -1,0 +1,246 @@
+body {
+  background-color: #f6f6f6;
+}
+.sidebar {
+  background-color: white;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  position: sticky;
+}
+.sidebar .user-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.sidebar .user-info img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+.sidebar .user-info h6 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+.sidebar .divider {
+  border-top: 1px solid #ddd;
+  margin: 15px 0;
+}
+.nav-link {
+  font-size: 1.5rem;
+  color: #6c757d;
+  transition: color 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav-link:hover {
+  color: #343a40;
+}
+.nav-link.active {
+  color: #000;
+  font-weight: bold;
+}
+.logout-btn {
+  margin-top: auto;
+  text-align: center;
+}
+.logout-btn button {
+  font-size: 1rem;
+  color: white;
+  background-color: #c94b4b;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.logout-btn button:hover {
+  background-color: #a33a3a;
+}
+.top-bar {
+  background-color: #c94b4b;
+  color: white;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.top-bar .col {
+  text-align: center;
+  border-right: 1px solid white;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.top-bar .col:last-child {
+  border-right: none;
+}
+.top-bar .col span {
+  color:rgb(31, 198, 70);
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.category-item {
+  background-color: white;
+  border: none;
+  padding: 20px;
+  margin: 3rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 18rem;
+  height: 19rem;
+  text-align: center;
+  cursor: pointer;
+}
+.category-item:hover {
+  transform: scale(1.1);
+  /* Se eliminan los cambios de color de fondo y texto */
+}
+.category-item img {
+  width: 12rem;
+  height: 12rem;
+  margin-bottom: 5px;
+}
+.category-item span {
+  font-size: 2.5rem;
+  font-family: 'Georgia', serif;
+}
+.category-item .earnings {
+  font-size: 1.2rem;
+  color: rgb(31, 198, 70);
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+.category-item.active {
+  background-color: #c94b4b;
+  color: white;
+}
+.categories-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.menu-card {
+  border-radius: 0;
+  overflow: hidden;
+  padding: 20px;
+  width: 300px;
+  margin: auto;
+}
+.menu-card img {
+  height: 13rem;
+  object-fit: cover;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+.menu-card button {
+  font-size: 1.2rem;
+  font-weight: normal;
+}
+.menu-card h6 {
+  font-size: 1.5rem;
+  margin-top: -1rem;
+}
+.menu-card .allergens {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.menu-card .allergens img {
+  width: 2.7rem;
+  height: 2.7rem;
+}
+.footer {
+  background-color: #c94b4b;
+  color: white;
+  padding: 10px 0;
+  text-align: center;
+}
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  position: relative;
+  color: #6c757d;
+  text-decoration: none;
+  color: inherit;
+}
+.section-title:hover {
+  text-decoration: none;
+}
+.section-title:not(.active) {
+  color: #a0a0a0;
+}
+.section-title.active {
+  color:rgb(0, 0, 0);
+}
+.section-title::after {
+  content: '';
+  display: block;
+  width: 90%;
+  height: 2px;
+  background-color: #c94b4b;
+  margin: 0.5rem auto 0;
+}
+.section-titles-container {
+  display: flex;
+  justify-content: center;
+  gap: 20rem;
+  margin-bottom: 2rem;
+  margin-top: 4rem;
+}
+.card {
+  background-color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 350px;
+  margin: 20px;
+  transition: transform 0.2s ease-in-out;
+}
+.card:hover {
+  transform: translateY(-5px);
+}
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-family: 'Georgia', serif;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+.item:last-child {
+  border-bottom: none;
+}
+.price {
+  font-weight: bold;
+  color: rgb(31, 198, 70);
+}
+.total {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 10px;
+  text-align: center;
+}
+.divider {
+  height: 1px;
+  background-color: #c94b4b;
+  margin: 10px 0;
+}
+.hidden {
+  display: none;
+}
