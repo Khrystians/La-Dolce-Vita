@@ -226,8 +226,6 @@ body {
 #carousel-right:after {
   content: none !important;
 }
-.carousel-btn:hover {
-}
 
 @media (max-width: 900px) {
   .container {
@@ -405,6 +403,7 @@ body {
 
 /* Botonera */
 .botonera {
+  position: fixed; /* ¡Esto es clave! */
   display: flex;
   gap: 30px;
   justify-content: center;
@@ -418,6 +417,7 @@ body {
   padding: 18px 0;
   z-index: 100;
 }
+
 
 .botonera button {
   padding: 20px 45px;

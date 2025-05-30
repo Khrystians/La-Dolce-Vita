@@ -6,7 +6,7 @@
 
         // Lista de usuarios y contraseñas (uno por cada mesa, solo nombre)
         $usuarios = [
-            "cristian" => "1234qwerty",
+            "administracion" => "1234qwerty",
             "mesa1" => "mesa1pass",
             "mesa2" => "mesa2pass",
             "mesa3" => "mesa3pass",
@@ -30,7 +30,8 @@
             $_SESSION['hora'] = time(); // ==> Guardamos la hora a la que se inicio la sesión 
             
             // Redireccionamos a la pagina principal
-            if ($usuario === "cristian") {
+            if ($usuario === "administracion") {
+                // Si el usuario es administrador redireccionamos a la pagina de administracion
                 header("location:Administrador-menu.php");
             } else if (strpos($usuario, "mesa") === 0) {
                 header("location:cliente.php");

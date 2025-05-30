@@ -167,46 +167,6 @@
   </div>
   <!-- Fin carrusel de pedidos -->
 
-  <!-- Botonera -->
-  <style>
-    .botonera {
-      display: flex;
-      gap: 30px;
-      justify-content: center;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      margin: 0;
-      background: #fff;
-      border-radius: 0;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
-      padding: 18px 0;
-      z-index: 100;
-    }
-
-    .botonera button {
-      padding: 20px 45px;
-      font-size: 1.5rem;
-      font-weight: bold;
-      border: 1px solid #333;
-      border-radius: 6px;
-      background-color: white;
-      color: black;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .botonera button:hover {
-      background-color: #eee;
-    }
-
-    .botonera .activo {
-      background-color: #c54646;
-      color: white;
-      border: none;
-    }
-  </style>
-
   <div class="botonera">
     <button onclick="window.location.href='Cocina-Pendientes.php'">PEDIDOS EN PENDIENTES</button>
     <button class="activo">PEDIDOS EN PROCESO</button>
