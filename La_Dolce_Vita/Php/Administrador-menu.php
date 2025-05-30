@@ -5,168 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Menú - La Dolce Vita</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f6f6f6;
-    }
-    .sidebar {
-      background-color: white;
-      height: 210vh; /* Ajusta la altura de la barra lateral */
-      padding: 20px;
-      border-right: 1px solid #ddd;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Añade sombra al sidebar */
-    }
-    .sidebar .user-info {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .sidebar .user-info img {
-      width: 100px; /* Aumenta el tamaño de la imagen */
-      height: 100px;
-      border-radius: 50%;
-      margin-bottom: 10px;
-    }
-    .sidebar .user-info h6 {
-      font-size: 1.2rem;
-      margin: 0;
-    }
-    .sidebar .divider {
-      border-top: 1px solid #ddd;
-      margin: 15px 0;
-    }
-    .nav-link {
-      font-size: 1.5rem; /* Aumenta aún más el tamaño del texto */
-      color: #6c757d; /* Cambia el color a gris */
-      transition: color 0.2s ease-in-out; /* Transición suave para el color */
-      display: flex;
-      align-items: center;
-      gap: 10px; /* Espaciado entre el ícono y el texto */
-    }
-    .nav-link:hover {
-      color: #343a40; /* Cambia el color al pasar el cursor */
-    }
-    .nav-link.active {
-      color: #000; /* Cambia el color del link seleccionado a negro */
-      font-weight: bold; /* Resalta el link seleccionado */
-    }
-    .logout-btn {
-      margin-top: auto;
-      text-align: center;
-    }
-    .logout-btn button {
-      font-size: 1rem;
-      color: white;
-      background-color: #c94b4b;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .logout-btn button:hover {
-      background-color: #a33a3a;
-    }
-    .top-bar {
-      background-color: #c94b4b;
-      color: white;
-      padding: 10px 0;
-      display: flex;
-      align-items: center; /* Centra verticalmente */
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Añade sombra al topbar */
-    }
-    .top-bar .col {
-      text-align: center;
-      border-right: 1px solid white;
-      font-size: 1.2rem; /* Aumenta el tamaño del texto */
-      display: flex;
-      flex-direction: column;
-      justify-content: center; /* Centra horizontalmente */
-    }
-    .top-bar .col:last-child {
-      border-right: none;
-    }
-    .top-bar .col span {
-      color:rgb(31, 198, 70); /* Muestra el dinero ganado en verde */
-      font-weight: bold;
-      /* border: 1px solid white;  Añade un ligero borde blanco */
-      padding: 2px 5px; /* Espaciado interno */
-      border-radius: 5px; /* Bordes redondeados */
-    }
-    .category-item {
-      background-color: white;
-      border: none;
-      padding: 20px;
-      margin: 2rem; /* Aumenta la separación entre los divs */
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease-in-out; /* Añade transición para la animación */
-      display: flex;
-      flex-direction: column; /* Coloca el logo encima del texto */
-      align-items: center;
-      justify-content: center;
-      width: 9rem; /* Div cuadrado */
-      height: 10rem; /* Ajusta la altura para incluir el texto */
-      text-align: center;
-      cursor: pointer;
-    }
-    .category-item:hover {
-      transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el cursor */
-    }
-    .category-item img {
-      width: 5rem; /* Tamaño del logo */
-      height: 5rem;
-      margin-bottom: 5px; /* Espacio entre el logo y el texto */
-    }
-    .category-item span {
-      font-size: 1.2rem; /* Aumenta el tamaño del texto */
-      font-family: 'Georgia', serif; /* Aplica una tipografía elegante */
-    }
-    .category-item.active {
-      background-color: #c94b4b;
-      color: white;
-    }
-    .categories-container {
-      display: flex;
-      justify-content: center; /* Centra los divs horizontalmente */
-      flex-wrap: wrap; /* Permite que los divs se ajusten en varias filas */
-    }
-    .menu-card {
-      border-radius: 0; /* Elimina los bordes redondeados */
-      overflow: hidden; /* Asegura que el contenido no se desborde */
-      padding: 20px; /* Añade más espacio interno */
-      width: 300px; /* Reduce el ancho de las tarjetas */
-      margin: auto; /* Centra las tarjetas dentro de su columna */
-    }
-    .menu-card img {
-      height: 13rem;
-      object-fit: cover;
-      margin-bottom: 20px; /* Aumenta el espacio entre la imagen y el contenido */
-      border-radius: 8px; /* Redondea ligeramente los bordes de la imagen */
-    }
-    .menu-card button {
-      font-size: 1.2rem; /* Aumenta el tamaño del texto de los botones */
-      /* font-family: 'Georgia', serif;  Aplica la fuente Georgia */
-      font-weight: normal; /* Sin negrita */
-    }
-    .menu-card h6 {
-      font-size: 1.5rem; /* Aumenta el tamaño del título */
-      margin-top: -1rem; /* Reduce el espacio entre el título y la imagen */
-    }
-    .menu-card .allergens {
-      display: flex;
-      justify-content: center;
-      gap: 10px; /* Espaciado entre los iconos */
-      margin-top: 10px; /* Espacio entre el contenido y los iconos */
-    }
-    .menu-card .allergens img {
-      width: 2.7rem; /* Aumenta el tamaño de los iconos */
-      height: 2.7rem;
-    }
-    .footer {
-      background-color: #c94b4b; /* Mismo color que el topbar */
-      color: white;
-      padding: 10px 0;
-      text-align: center;
-    }
-  </style>
+  <link rel="stylesheet" href="../Css/Administrador-menu.css">
 </head>
 <body>
 
@@ -177,12 +16,11 @@
     <div class="col-md-2 sidebar d-flex flex-column">
       <!-- Logo y Nombre del Restaurante -->
       <div class="text-center mb-4">
-        <img src="../Assets/Images/La Dolce Vita icon 1.png" alt="Logo" class="img-fluid mb-3"  style="width: 11rem;"> <!-- Aumenta el tamaño del logo -->
-        <h4 style="font-size: 1.8rem; margin-top: -1rem;">LA DOLCE VITA</h4> <!-- Aumenta el tamaño del texto -->
+        <img src="../Assets/Images/La Dolce Vita icon.png" alt="Logo" class="img-fluid"  style="width: 20rem;"> <!-- Aumenta el tamaño del logo -->
       </div>
 
       <!-- Línea de separación -->
-      <div class="divider"></div>
+      <div class="divider" style="margin-top: -2rem;"></div>
 
       <!-- Fecha actual -->
       <div class="text-center mb-3">
@@ -206,8 +44,8 @@
         <a class="nav-link" href="Administrador-Equipo.php"><i class="bi bi-people"></i> Equipo</a>
         <a class="nav-link" href="Cocina-Pendientes.php"><i class="bi bi-egg-fried"></i> Cocina</a> <!-- Nuevo enlace -->
         <a class="nav-link active" href="Administrador-menu.php"><i class="bi bi-list"></i> Menú</a>
-        <a class="nav-link" href="#"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
-        <a class="nav-link" href="#"><i class="bi bi-info-circle"></i> Información General</a> <!-- Nuevo enlace -->
+        <a class="nav-link" href="Administrador-Añadir.php"><i class="bi bi-plus-circle"></i> Añadir plato</a> <!-- Nuevo enlace -->
+        
         <?php
           // Obtener el número de notificaciones no leídas
           $notificaciones = 0;
@@ -233,11 +71,6 @@
       <!-- Línea de separación -->
       <div class="divider mt-5"></div>
 
-      <!-- Botón de Redes Sociales -->
-      <div class="social-btn mb-3 text-center">
-        <button class="btn btn-success w-75">Redes Sociales</button> <!-- Cambiado a verde -->
-      </div>
-
       <!-- Botón de Deslogearse -->
       <div class="logout-btn text-center">
         <button class="btn btn-danger w-75 mb-3">Deslogearse</button>
@@ -247,7 +80,7 @@
       <div class="footer mt-auto">
         <small>Versión 1.0.0</small>
         <br>
-        <small>© 2023 La Dolce Vita</small>
+        <small>© 2025 La Dolce Vita</small>
       </div>
     </div>
 
@@ -340,7 +173,7 @@
                 }
                 echo '<div class="col">
                         <div class="card menu-card shadow-sm">
-                          <img src="' . htmlspecialchars($dish['image_url']) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
+                          <img src="../Assets/Images/Dishes/' . htmlspecialchars(substr_replace(substr($dish['image_url'], 4), 'png', -3)) . '" class="card-img-top" alt="' . htmlspecialchars($dish['name']) . '">
                           <div class="card-body text-center">
                             <h6 class="card-title mb-1">' . htmlspecialchars($dish['name']) . '</h6>
                             <div class="allergens">';
@@ -371,18 +204,48 @@
         // Manejo de clic en categorías y carga dinámica de platos
         document.querySelectorAll('.category-item').forEach(function(cat) {
           cat.addEventListener('click', function() {
-            document.querySelectorAll('.category-item').forEach(function(c) { c.classList.remove('active'); });
+            document.querySelectorAll('.category-item').forEach(function(c) {
+              c.classList.remove('active');
+              // Restaurar logo normal
+              var img = c.querySelector('img');
+              var base = img.getAttribute('alt').toLowerCase();
+              img.src = "../Assets/Images/logos/" + base + ".png";
+            });
             cat.classList.add('active');
+            // Cambiar logo a _negro
+            var img = cat.querySelector('img');
+            var base = img.getAttribute('alt').toLowerCase();
+            img.src = "../Assets/Images/logos/" + base + "_negro.png";
             var catId = cat.getAttribute('data-category-id');
             var xhr = new XMLHttpRequest();
             xhr.open('GET', 'obtener_platos_por_categoria.php?category_id=' + catId, true);
             xhr.onload = function() {
               if (xhr.status === 200) {
                 document.getElementById('menu-items').innerHTML = xhr.responseText;
+                animarPlatos();
               }
             };
             xhr.send();
           });
+        });
+
+        // Animación de entrada para los platos
+        function animarPlatos() {
+          var cards = document.querySelectorAll('#menu-items .menu-card');
+          cards.forEach(function(card, i) {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(function() {
+              card.style.transition = 'opacity 0.4s cubic-bezier(.4,2,.6,1), transform 0.4s cubic-bezier(.4,2,.6,1)';
+              card.style.opacity = '1';
+              card.style.transform = 'scale(1)';
+            }, 60 * i);
+          });
+        }
+
+        // Llama a la animación al cargar la página por primera vez
+        document.addEventListener('DOMContentLoaded', function() {
+          animarPlatos();
         });
 
         // Delegación de eventos para los botones activar/desactivar
@@ -416,6 +279,10 @@
           }
         });
       </script>
+
+      <!-- Elfsight All-in-One Chat | Untitled All-in-One Chat -->
+      <script src="https://static.elfsight.com/platform/platform.js" async></script>
+      <div class="elfsight-app-0c3b7783-a3f5-4753-9ffe-587f92446b2d" data-elfsight-app-lazy></div>
     </div>
   </div>
 </div>
