@@ -405,7 +405,7 @@ body {
 
 /* Botonera */
 .botonera {
-  position: fixed; /* ¡Esto es clave! */
+  position: fixed;
   display: flex;
   gap: 30px;
   justify-content: center;
